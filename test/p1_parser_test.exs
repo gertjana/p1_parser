@@ -6,7 +6,7 @@ defmodule P1ParserTest do
     lines = """
       /ISk5MT382-1000
       1-3:0.2.8(50)
-      0-0:1.0.0(101209113020 )
+      0-0:1.0.0(101209113020W)
       0-0:96.1.1(4B384547303034303436333935353037)
       1-0:1.8.1(123456.789*kWh)
       1-0:1.8.2(123456.789*kWh)
@@ -49,6 +49,7 @@ defmodule P1ParserTest do
 
     assert results |> Enum.at(0) == {:ok, [:header, "ISk", "MT382-1000"]}
     assert results |> Enum.at(1) == {:ok, [:version, "(50)"]}
+    assert results |> Enum.at(2) == {:ok, [:timestamp, "2010-12-09 11:30:20"]}
     assert results |> Enum.at(4) == {:ok, [:total_energy, :consume, :low, 123_456.789]}
     assert results |> Enum.at(5) == {:ok, [:total_energy, :consume, :normal, 123_456.789]}
     assert results |> Enum.at(6) == {:ok, [:total_energy, :produce, :low, 123_456.789]}
@@ -61,6 +62,6 @@ defmodule P1ParserTest do
     assert results |> Enum.at(26) == {:ok, [:amperage, :l1, 1]}
     assert results |> Enum.at(27) == {:ok, [:amperage, :l2, 2]}
     assert results |> Enum.at(28) == {:ok, [:amperage, :l3, 3]}
-    assert results |> Enum.at(37) == {:ok, [:gas, "101209112500", 12_785.123]}
+    assert results |> Enum.at(37) == {:ok, [:gas, "2010-12-09 11:25:00", 12_785.123]}
   end
 end
