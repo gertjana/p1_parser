@@ -58,9 +58,7 @@ defmodule P1Parser do
   defp total_energy_parser do
     map(string("1-0:"), fn _ -> :total_energy end)
     |> map(digit(), &(direction(&1)))
-    |> ignore(char("."))
-    |> ignore(char("8"))
-    |> ignore(char("."))
+    |> ignore(string(".8."))
     |> map(digit(), &(tariff(&1)))
     |> between(char("("), float(), char("*"))
     |> ignore(string("kWh)"))
@@ -71,9 +69,7 @@ defmodule P1Parser do
   defp current_energy_parser do
     map(string("1-0:"), fn _ -> :current_energy end)
     |> map(digit(), &(direction(&1)))
-    |> ignore(char("."))
-    |> ignore(char("7"))
-    |> ignore(char("."))
+    |> ignore(string(".7."))
     |> ignore(digit())
     |> between(char("("), float(), char("*"))
     |> ignore(string("kW)"))
@@ -85,10 +81,7 @@ defmodule P1Parser do
   defp voltage_parser do
     map(string("1-0:"), fn _ -> :voltage end)
     |> map(both(digit(), digit(), fn a, b -> Enum.join([a, b]) |> String.to_integer end), &(phase(&1)))
-    |> ignore(char("."))
-    |> ignore(char("7"))
-    |> ignore(char("."))
-    |> ignore(char("0"))
+    |> ignore(string(".7.0"))
     |> between(char("("), float(), char("*"))
     |> ignore(string("V)"))
   end
@@ -99,10 +92,7 @@ defmodule P1Parser do
   defp amperage_parser do
     map(string("1-0:"), fn _ -> :amperage end)
     |> map(both(digit(), digit(), fn a, b -> Enum.join([a, b]) |> String.to_integer end), &(phase(&1)))
-    |> ignore(char("."))
-    |> ignore(char("7"))
-    |> ignore(char("."))
-    |> ignore(char("0"))
+    |> ignore(string(".7.0"))
     |> between(char("("), integer(), char("*"))
     |> ignore(string("A)"))
   end
