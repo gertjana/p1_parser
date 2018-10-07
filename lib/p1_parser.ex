@@ -125,9 +125,9 @@ defmodule P1Parser do
 
   defp phase(x) do
     case x do
-      l when l in [31,32] -> :l1
-      l when l in [51,52] -> :l2
-      l when l in [71,72] -> :l3
+      l when l in [31, 32] -> :l1
+      l when l in [51, 52] -> :l2
+      l when l in [71, 72] -> :l3
        _ -> x
     end
   end
