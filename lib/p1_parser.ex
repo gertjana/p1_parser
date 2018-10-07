@@ -59,7 +59,6 @@ defmodule P1Parser do
     |> ignore(char(")"))
   end
 
-
   # 1-0:1.8.1(123456.789*kWh)
   # 1-0:1.8.2(123456.789*kWh)
   # 1-0:2.8.1(123456.789*kWh)
@@ -121,7 +120,7 @@ defmodule P1Parser do
       |> Enum.chunk(2)
       |> Enum.map(&Enum.join/1)
       |> Enum.chunk(3)
-    "20" <> Enum.join(date, "-") <> " " <> Enum.join(hd(time), ":") 
+    "20" <> Enum.join(date, "-") <> " " <> Enum.join(hd(time), ":")
   end
 
   defp phase(x) do
