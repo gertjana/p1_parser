@@ -1,6 +1,6 @@
 # P1Parser
 
-**TODO: Add description**
+Parser's telegram's as they output through the P1 serial port of a smartmeter
 
 ## Installation
 
@@ -19,3 +19,9 @@ Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_do
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/p1_parser](https://hexdocs.pm/p1_parser).
 
+#todo
+
+ - Parde units
+ - Defstructs
+ - Parse entire telegram
+ - split out tests

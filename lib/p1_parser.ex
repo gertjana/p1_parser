@@ -9,7 +9,13 @@ defmodule P1Parser do
   # credo:disable-for-this-file Credo.Check.Refactor.PipeChainStart
 
   @doc """
-    Parses a line of text
+    Parses a line of text according to the P1 protocol
+
+  ## Examples
+
+      iex> P1Parser.parse("1-0:1.7.0(01.193*kW)")
+      {:ok, [:current_energy, :consume, 1.193]}
+
   """
   def parse(line) do
     case Combine.parse(line, parser()) do
@@ -21,6 +27,7 @@ defmodule P1Parser do
   defp parser do
     choice(nil, [
       header_parser(),
+      version_parser(),
       total_energy_parser(),
       current_energy_parser(),
       amperage_parser(),
@@ -32,9 +39,15 @@ defmodule P1Parser do
 
   # /ISk5MT382-1000
   defp header_parser do
-    ignore(char("/"))
+    map(char("/"), fn _ -> :header end)
     |> word_of(~r/\w{3}/)
     |> ignore(char("5"))
+    |> word_of(~r/.+/)
+  end
+
+  # 1-3:0.2.8(50)
+  defp version_parser do
+    map(string("1-3:0.2.8"), fn _ -> :version end)
     |> word_of(~r/.+/)
   end
 
@@ -43,7 +56,7 @@ defmodule P1Parser do
   # 1-0:2.8.1(123456.789*kWh)
   # 1-0:2.8.2(123456.789*kWh)
   defp total_energy_parser do
-    ignore(string("1-0:"))
+    map(string("1-0:"), fn _ -> :total_energy end)
     |> map(digit(), &(direction(&1)))
     |> ignore(char("."))
     |> ignore(char("8"))
@@ -51,13 +64,12 @@ defmodule P1Parser do
     |> map(digit(), &(tariff(&1)))
     |> between(char("("), float(), char("*"))
     |> ignore(string("kWh)"))
-    |> map(eof(), fn _ -> :total_energy end)
   end
 
   # 1-0:1.7.0(01.193*kW)
   # 1-0:2.7.0(00.000*kW)
   defp current_energy_parser do
-    ignore(string("1-0:"))
+    map(string("1-0:"), fn _ -> :current_energy end)
     |> map(digit(), &(direction(&1)))
     |> ignore(char("."))
     |> ignore(char("7"))
@@ -65,14 +77,13 @@ defmodule P1Parser do
     |> ignore(digit())
     |> between(char("("), float(), char("*"))
     |> ignore(string("kW)"))
-    |> map(eof(), fn _ -> :current_energy end)
   end
 
   # 1-0:32.7.0(220.1*V)
   # 1-0:52.7.0(220.2*V)
   # 1-0:72.7.0(220.3*V)
   defp voltage_parser do
-    ignore(string("1-0:"))
+    map(string("1-0:"), fn _ -> :voltage end)
     |> map(both(digit(), digit(), fn a, b -> Enum.join([a, b]) |> String.to_integer end), &(phase(&1)))
     |> ignore(char("."))
     |> ignore(char("7"))
@@ -80,14 +91,13 @@ defmodule P1Parser do
     |> ignore(char("0"))
     |> between(char("("), float(), char("*"))
     |> ignore(string("V)"))
-    |> map(eof(), fn _ -> :voltage end)
   end
 
   # 1-0:31.7.0(001*A)
   # 1-0:51.7.0(002*A)
   # 1-0:71.7.0(003*A)
   defp amperage_parser do
-    ignore(string("1-0:"))
+    map(string("1-0:"), fn _ -> :amperage end)
     |> map(both(digit(), digit(), fn a, b -> Enum.join([a, b]) |> String.to_integer end), &(phase(&1)))
     |> ignore(char("."))
     |> ignore(char("7"))
@@ -95,22 +105,15 @@ defmodule P1Parser do
     |> ignore(char("0"))
     |> between(char("("), integer(), char("*"))
     |> ignore(string("A)"))
-    |> map(eof(), fn _ -> :amperage end)
   end
 
   # 0-1:24.2.1(101209112500W)(12785.123*m3)
   defp gas_parser do
-    ignore(string("0-1:24.2.1"))
+    map(string("0-1:24.2.1"), fn _ -> :gas end)
     |> between(char("("), word_of(~r/\d+/), char("W"))
     |> ignore(char(")"))
     |> between(char("("), float(), char("*"))
     |> ignore(string("m3)"))
-    |> map(eof(), fn _ -> :gas end)
-  end
-
-  defp catchall_parser do
-    ignore(word_of(~r/.*/))
-    |> map(eof(), fn _ -> :not_supported end)
   end
 
   defp phase(x) do

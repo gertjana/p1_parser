@@ -4,6 +4,7 @@ defmodule P1Parser.Mixfile do
   def project do
     [
       app: :p1_parser,
+      description: "Parsers P1 output of a Smartmeter",
       version: "0.1.0",
       elixir: "~> 1.5",
       start_permanent: Mix.env == :prod,
@@ -21,7 +22,8 @@ defmodule P1Parser.Mixfile do
   defp deps do
     [
       {:combine, "~> 0.10.0"},
-      {:credo, "~> 0.10.0", only: [:dev, :test], runtime: false}
+      {:credo, "~> 0.10.0", only: [:dev, :test], runtime: false},
+      {:ex_doc, ">= 0.0.0", only: :dev} 
     ]
   end
 
