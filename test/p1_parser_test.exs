@@ -50,18 +50,20 @@ defmodule P1ParserTest do
     assert results |> Enum.at(0) == {:ok, [:header, "ISk", "MT382-1000"]}
     assert results |> Enum.at(1) == {:ok, [:version, "(50)"]}
     assert results |> Enum.at(2) == {:ok, [:timestamp, "2010-12-09 11:30:20"]}
-    assert results |> Enum.at(4) == {:ok, [:total_energy, :consume, :low, 123_456.789]}
-    assert results |> Enum.at(5) == {:ok, [:total_energy, :consume, :normal, 123_456.789]}
-    assert results |> Enum.at(6) == {:ok, [:total_energy, :produce, :low, 123_456.789]}
-    assert results |> Enum.at(7) == {:ok, [:total_energy, :produce, :normal, 123_456.789]}
-    assert results |> Enum.at(9) == {:ok, [:current_energy, :consume, 1.193]}
-    assert results |> Enum.at(10) == {:ok, [:current_energy, :produce, 0.0]}
-    assert results |> Enum.at(23) == {:ok, [:voltage, :l1, 220.1]}
-    assert results |> Enum.at(24) == {:ok, [:voltage, :l2, 220.2]}
-    assert results |> Enum.at(25) == {:ok, [:voltage, :l3, 220.3]}
-    assert results |> Enum.at(26) == {:ok, [:amperage, :l1, 1]}
-    assert results |> Enum.at(27) == {:ok, [:amperage, :l2, 2]}
-    assert results |> Enum.at(28) == {:ok, [:amperage, :l3, 3]}
-    assert results |> Enum.at(37) == {:ok, [:gas, "2010-12-09 11:25:00", 12_785.123]}
+    assert results |> Enum.at(3) == {:ok, [:equipment_identifier, "4B384547303034303436333935353037"]}
+    assert results |> Enum.at(4) == {:ok, [:total_energy, :consume, :low, 123_456.789, "kWh"]}
+    assert results |> Enum.at(5) == {:ok, [:total_energy, :consume, :normal, 123_456.789, "kWh"]}
+    assert results |> Enum.at(6) == {:ok, [:total_energy, :produce, :low, 123_456.789, "kWh"]}
+    assert results |> Enum.at(7) == {:ok, [:total_energy, :produce, :normal, 123_456.789, "kWh"]}
+    assert results |> Enum.at(8) == {:ok, [:tariff_indicator, :normal]}
+    assert results |> Enum.at(9) == {:ok, [:current_energy, :consume, 1.193, "kW"]}
+    assert results |> Enum.at(10) == {:ok, [:current_energy, :produce, 0.0, "kW"]}
+    assert results |> Enum.at(23) == {:ok, [:voltage, :l1, 220.1, "V"]}
+    assert results |> Enum.at(24) == {:ok, [:voltage, :l2, 220.2, "V"]}
+    assert results |> Enum.at(25) == {:ok, [:voltage, :l3, 220.3, "V"]}
+    assert results |> Enum.at(26) == {:ok, [:amperage, :l1, 1, "A"]}
+    assert results |> Enum.at(27) == {:ok, [:amperage, :l2, 2, "A"]}
+    assert results |> Enum.at(28) == {:ok, [:amperage, :l3, 3, "A"]}
+    assert results |> Enum.at(37) == {:ok, [:gas, "2010-12-09 11:25:00", 12_785.123, "m3"]}
   end
 end

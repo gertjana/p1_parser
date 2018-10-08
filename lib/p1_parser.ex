@@ -14,14 +14,14 @@ defmodule P1Parser do
   ## Examples
 
       iex> P1Parser.parse("1-0:1.7.0(01.193*kW)")
-      {:ok, [:current_energy, :consume, 1.193]}
+      {:ok, [:current_energy, :consume, 1.193, "kW"]}
 
   """
   @spec parse(String.t()) :: {:ok, term} | {:error, String.t()}
   def parse(line) do
     case Combine.parse(line, parser()) do
       {:error, reason} -> {:error, reason}
-      result -> {:ok, result}
+      result           -> {:ok, result}
     end
   end
 
@@ -32,12 +32,13 @@ defmodule P1Parser do
       header_parser(),
       version_parser(),
       timestamp_parser(),
+      equipment_identifier_parser(),
+      tariff_indicator_parser(),
       total_energy_parser(),
       current_energy_parser(),
       amperage_parser(),
       voltage_parser(),
-      gas_parser(),
-     # catchall_parser()
+      gas_parser()
     ])
   end
 
@@ -53,6 +54,12 @@ defmodule P1Parser do
   defp version_parser do
     map(string("1-3:0.2.8"), fn _ -> :version end)
     |> word_of(~r/.+/)
+  end
+
+  # 0-0:96.1.1(4B384547303034303436333935353037)
+  defp equipment_identifier_parser do
+    map(string("0-0:96.1.1"), fn _ -> :equipment_identifier end)
+    |> between(char("("), word_of(~r/[0-9a-f]+/i), char(")"))
   end
 
   # 0-0:1.0.0(101209113020W)
@@ -72,7 +79,14 @@ defmodule P1Parser do
     |> ignore(string(".8."))
     |> map(digit(), &(tariff(&1)))
     |> between(char("("), float(), char("*"))
-    |> ignore(string("kWh)"))
+    |> string("kWh")
+    |> ignore(string(")"))
+  end
+
+  # 0-0:96.14.0(0002)
+  def tariff_indicator_parser do
+    map(string("0-0:96.14.0"), fn _ -> :tariff_indicator end)
+    |> between(char("("), map(integer(), &(tariff(&1))) , char(")"))
   end
 
   # 1-0:1.7.0(01.193*kW)
@@ -83,7 +97,8 @@ defmodule P1Parser do
     |> ignore(string(".7."))
     |> ignore(digit())
     |> between(char("("), float(), char("*"))
-    |> ignore(string("kW)"))
+    |> string("kW")
+    |> ignore(string(")"))
   end
 
   # 1-0:32.7.0(220.1*V)
@@ -94,7 +109,8 @@ defmodule P1Parser do
     |> map(both(digit(), digit(), fn a, b -> Enum.join([a, b]) |> String.to_integer end), &(phase(&1)))
     |> ignore(string(".7.0"))
     |> between(char("("), float(), char("*"))
-    |> ignore(string("V)"))
+    |> string("V")
+    |> ignore(string(")"))
   end
 
   # 1-0:31.7.0(001*A)
@@ -105,7 +121,8 @@ defmodule P1Parser do
     |> map(both(digit(), digit(), fn a, b -> Enum.join([a, b]) |> String.to_integer end), &(phase(&1)))
     |> ignore(string(".7.0"))
     |> between(char("("), integer(), char("*"))
-    |> ignore(string("A)"))
+    |> string("A")
+    |> ignore(string(")"))
   end
 
   # 0-1:24.2.1(101209112500W)(12785.123*m3)
@@ -114,7 +131,8 @@ defmodule P1Parser do
     |> map(between(char("("), word_of(~r/\d+/), char("W")), &(timestamp(&1)))
     |> ignore(char(")"))
     |> between(char("("), float(), char("*"))
-    |> ignore(string("m3)"))
+    |> string("m3")
+    |> ignore(string(")"))
   end
 
   defp timestamp(text) do
