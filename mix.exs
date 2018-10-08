@@ -29,7 +29,7 @@ defmodule P1Parser.Mixfile do
 
   defp package do
   [
-    files: ["lib", "mix.exs", "README", "LICENSE*"],
+    files: ["lib", "mix.exs", "README.md", "LICENSE*"],
     maintainers: ["Gertjan Assies"],
     licenses: ["Apache 2.0"],
     links: %{"GitHub" => "https://github.com/gertjana/p1_parser"}
