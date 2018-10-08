@@ -18,7 +18,8 @@ The docs can be found at [https://hexdocs.pm/p1_parser](https://hexdocs.pm/p1_pa
 
 #todo
 
- - Parse units
+ - ~~Parse units~~
+ - Parse Summer/Winter time information in timestamp
  - return structs
  - Parse entire telegram
  - split out tests
