@@ -2,12 +2,9 @@
 
 # P1Parser
 
-Parser's telegram's as they output through the P1 serial port of a smartmeter
+Parses telegram's as they are output through the P1 serial port of a smartmeter
 
 ## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `p1_parser` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
@@ -17,13 +14,11 @@ def deps do
 end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/p1_parser](https://hexdocs.pm/p1_parser).
+The docs can be found at [https://hexdocs.pm/p1_parser](https://hexdocs.pm/p1_parser).
 
 #todo
 
- - Parde units
- - Defstructs
+ - Parse units
+ - return structs
  - Parse entire telegram
  - split out tests
