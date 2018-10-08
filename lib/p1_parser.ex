@@ -17,12 +17,15 @@ defmodule P1Parser do
       {:ok, [:current_energy, :consume, 1.193]}
 
   """
+  @spec parse(String.t()) :: {:ok, term} | {:error, String.t()}
   def parse(line) do
     case Combine.parse(line, parser()) do
       {:error, reason} -> {:error, reason}
       result -> {:ok, result}
     end
   end
+
+  # Implementations
 
   defp parser do
     choice(nil, [
@@ -117,9 +120,9 @@ defmodule P1Parser do
   defp timestamp(text) do
     [date | time] = text
       |> String.codepoints
-      |> Enum.chunk(2)
+      |> Enum.chunk_every(2)
       |> Enum.map(&Enum.join/1)
-      |> Enum.chunk(3)
+      |> Enum.chunk_every(3)
     "20" <> Enum.join(date, "-") <> " " <> Enum.join(hd(time), ":")
   end
 
