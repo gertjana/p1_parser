@@ -1,6 +1,8 @@
 defmodule P1ParserTest do
   use ExUnit.Case
-  doctest P1Parser
+  alias P1.Parser, as: Parser
+  doctest P1.Parser
+  doctest P1.Model
 
   test "send lines" do
     lines = """
@@ -45,7 +47,7 @@ defmodule P1ParserTest do
       !EF2F
       """ |> String.split("\n")
 
-    results = lines |> Enum.map(fn line -> P1Parser.parse(line) end)
+    results = lines |> Enum.map(fn line -> Parser.parse(line) end)
 
     assert results |> Enum.at(0) == {:ok, [:header, "ISk", "MT382-1000"]}
     assert results |> Enum.at(1) == {:ok, [:version, "(50)"]}

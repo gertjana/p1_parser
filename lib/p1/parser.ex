@@ -1,4 +1,4 @@
-defmodule P1Parser do
+defmodule P1.Parser do
   use Combine
   import Combine.Parsers.Base
   import Combine.Parsers.Text
@@ -13,7 +13,7 @@ defmodule P1Parser do
 
   ## Examples
 
-      iex> P1Parser.parse("1-0:1.7.0(01.193*kW)")
+      iex> P1.Parser.parse("1-0:1.7.0(01.193*kW)")
       {:ok, [:current_energy, :consume, 1.193, "kW"]}
 
   """
@@ -22,6 +22,13 @@ defmodule P1Parser do
     case Combine.parse(line, parser()) do
       {:error, reason} -> {:error, reason}
       result           -> {:ok, result}
+    end
+  end
+
+  def parse!(line) do
+    case Combine.parse(line, parser()) do
+      {:error, reason} -> raise reason
+      result           -> result
     end
   end
 
