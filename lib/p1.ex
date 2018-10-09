@@ -1,5 +1,6 @@
 defmodule P1 do
-  import P1.Parser
+  alias P1.Model, as: Model
+  alias P1.Parser, as: Parser
   @moduledoc """
     P1 is a communication standard for Dutch Smartmeters
 
@@ -56,13 +57,13 @@ defmodule P1 do
 
   ## Example
 
-      iex> P1.Parser.parse("1-0:1.7.0(01.193*kW)")
+      iex> P1.parse("1-0:1.7.0(01.193*kW)")
       {:ok, [:current_energy, :consume, 1.193, "kW"]}
 
   """
   @spec parse(String.t()) :: {:ok, term} | {:error, String.t()}
   def parse(line) do
-    case Combine.parse(line, parser()) do
+    case Combine.parse(line, Parser.parser()) do
       {:error, reason} -> {:error, reason}
       result           -> {:ok, result}
     end
@@ -73,13 +74,13 @@ defmodule P1 do
 
   ## Example
 
-      iex> P1.Parser.parse!("1-0:1.8.1(123456.789*kWh)")
+      iex> P1.parse!("1-0:1.8.1(123456.789*kWh)")
       [:total_energy, :consume, :low, 123_456.789, "kWh"]
 
   """
   @spec parse(String.t()) :: term
   def parse!(line) do
-    case Combine.parse(line, parser()) do
+    case Combine.parse(line, Parser.parser()) do
       {:error, reason} -> raise reason
       result           -> result
     end
@@ -94,6 +95,6 @@ defmodule P1 do
         %P1.Model.Version(version: "50")
 
   """
-  def to_scruct(obj), do: P1.Model.to_struct(obj)
+  def to_struct(obj), do: Model.to_struct(obj)
 
 end
