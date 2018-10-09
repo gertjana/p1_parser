@@ -8,33 +8,7 @@ defmodule P1.Parser do
 
   # credo:disable-for-this-file Credo.Check.Refactor.PipeChainStart
 
-  @doc """
-    Parses a line of text according to the P1 protocol
-
-  ## Examples
-
-      iex> P1.Parser.parse("1-0:1.7.0(01.193*kW)")
-      {:ok, [:current_energy, :consume, 1.193, "kW"]}
-
-  """
-  @spec parse(String.t()) :: {:ok, term} | {:error, String.t()}
-  def parse(line) do
-    case Combine.parse(line, parser()) do
-      {:error, reason} -> {:error, reason}
-      result           -> {:ok, result}
-    end
-  end
-
-  def parse!(line) do
-    case Combine.parse(line, parser()) do
-      {:error, reason} -> raise reason
-      result           -> result
-    end
-  end
-
-  # Implementations
-
-  defp parser do
+  def parser do
     choice(nil, [
       header_parser(),
       version_parser(),
@@ -60,7 +34,7 @@ defmodule P1.Parser do
   # 1-3:0.2.8(50)
   defp version_parser do
     map(string("1-3:0.2.8"), fn _ -> :version end)
-    |> word_of(~r/.+/)
+    |> between(char("("), word(), char(")"))
   end
 
   # 0-0:96.1.1(4B384547303034303436333935353037)
@@ -91,7 +65,7 @@ defmodule P1.Parser do
   end
 
   # 0-0:96.14.0(0002)
-  def tariff_indicator_parser do
+  defp tariff_indicator_parser do
     map(string("0-0:96.14.0"), fn _ -> :tariff_indicator end)
     |> between(char("("), map(integer(), &(tariff(&1))) , char(")"))
   end

@@ -1,8 +1,16 @@
 defmodule P1ParserTest do
   use ExUnit.Case
-  alias P1.Parser, as: Parser
+  alias P1.Parser, as: Parsers
   doctest P1.Parser
-  doctest P1.Model
+  doctest P1.Model.Header
+  doctest P1.Model.Version
+  doctest P1.Model.EquipmentIdentifier
+  doctest P1.Model.TotalEnergy
+  doctest P1.Model.TariffIndicator
+  doctest P1.Model.CurrentEnergy
+  doctest P1.Model.Voltage
+  doctest P1.Model.Amperage
+  doctest P1.Model.Gas
 
   test "send lines" do
     lines = """
@@ -47,10 +55,10 @@ defmodule P1ParserTest do
       !EF2F
       """ |> String.split("\n")
 
-    results = lines |> Enum.map(fn line -> Parser.parse(line) end)
+    results = lines |> Enum.map(fn line -> P1.parse(line) end)
 
     assert results |> Enum.at(0) == {:ok, [:header, "ISk", "MT382-1000"]}
-    assert results |> Enum.at(1) == {:ok, [:version, "(50)"]}
+    assert results |> Enum.at(1) == {:ok, [:version, "50"]}
     assert results |> Enum.at(2) == {:ok, [:timestamp, "2010-12-09 11:30:20"]}
     assert results |> Enum.at(3) == {:ok, [:equipment_identifier, "4B384547303034303436333935353037"]}
     assert results |> Enum.at(4) == {:ok, [:total_energy, :consume, :low, 123_456.789, "kWh"]}
