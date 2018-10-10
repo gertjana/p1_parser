@@ -9,17 +9,18 @@ Parses telegram's as they are output through the P1 serial port of a smartmeter
 ```elixir
 def deps do
   [
-    {:p1_parser, "~> 0.1.2"}
+    {:p1_parser, "~> 0.1.3"}
   ]
 end
 ```
 
 The docs can be found at [https://hexdocs.pm/p1_parser](https://hexdocs.pm/p1_parser).
 
-#todo
+# todo's
 
  - ~~Parse units~~
- - Parse Summer/Winter time information in timestamp
+ - ~~Parse Summer/Winter time information in timestamp~~
  - ~~return structs~~
  - Parse entire telegram
- - split out tests
+ - Validate checksum
+

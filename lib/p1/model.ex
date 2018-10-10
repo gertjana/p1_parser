@@ -42,6 +42,19 @@ defmodule P1.Model do
     defstruct identifier: ""
   end
 
+  defmodule Timestamp do
+    @moduledoc """
+    timestamp when this telegram was sent
+
+    ## Example
+    ```
+    iex> P1.parse!("0-0:1.0.0(101209113020W)") |> P1.to_struct
+    %P1.Model.Timestamp{timestamp: "2010-12-09 11:30:20 Wintertime"}
+    ```
+    """
+    defstruct timestamp: ""
+  end
+
   defmodule TotalEnergy do
     @moduledoc """
     Total electric energy consumed or produced in normal or low tariff
@@ -115,7 +128,7 @@ defmodule P1.Model do
     ## Example
     ```
     iex> P1.parse!("0-1:24.2.1(101209112500W)(12785.123*m3)") |> P1.to_struct
-    %P1.Model.Gas{timestamp: "2010-12-09 11:25:00", unit: "m3", value: 12785.123}
+    %P1.Model.Gas{timestamp: "2010-12-09 11:25:00 Wintertime", unit: "m3", value: 12785.123}
     ```
     """
     defstruct timestamp: "", value: 0.0, unit: "m3"
@@ -126,6 +139,8 @@ defmodule P1.Model do
   def to_struct([:version, version]), do: %Version{version: version}
 
   def to_struct([:equipment_identifier, identifier]), do: %EquipmentIdentifier{identifier: identifier}
+
+  def to_struct([:timestamp, timestamp]), do: %Timestamp{timestamp: timestamp}
 
   def to_struct([:total_energy, :consume, :normal, value, unit]), do: %TotalEnergy{direction: :consume, tariff: :normal, value: value, unit: unit}
   def to_struct([:total_energy, :consume, :low, value, unit]),    do: %TotalEnergy{direction: :consume, tariff: :low, value: value, unit: unit}

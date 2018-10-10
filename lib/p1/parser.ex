@@ -46,7 +46,8 @@ defmodule P1.Parser do
   # 0-0:1.0.0(101209113020W)
   defp timestamp_parser do
     map(string("0-0:1.0.0"), fn _ -> :timestamp end)
-    |> map(between(char("("), word_of(~r/\d+/), char("W")), &(timestamp(&1)))
+    |> ignore(char("("))
+    |> map(word_of(~r/\d+[SW]/), &(timestamp(&1)))
     |> ignore(char(")"))
   end
 
@@ -109,7 +110,8 @@ defmodule P1.Parser do
   # 0-1:24.2.1(101209112500W)(12785.123*m3)
   defp gas_parser do
     map(string("0-1:24.2.1"), fn _ -> :gas end)
-    |> map(between(char("("), word_of(~r/\d+/), char("W")), &(timestamp(&1)))
+    |> ignore(char("("))
+    |> map(word_of(~r/\d+[SW]/), &(timestamp(&1)))
     |> ignore(char(")"))
     |> between(char("("), float(), char("*"))
     |> string("m3")
@@ -117,12 +119,17 @@ defmodule P1.Parser do
   end
 
   defp timestamp(text) do
+    dst = case String.last(text) do
+      "S" -> "Summertime"
+      "W" -> "Wintertime"
+    end
     [date | time] = text
+      |> String.slice(0..String.length(text)-1)
       |> String.codepoints
       |> Enum.chunk_every(2)
       |> Enum.map(&Enum.join/1)
       |> Enum.chunk_every(3)
-    "20" <> Enum.join(date, "-") <> " " <> Enum.join(hd(time), ":")
+    "20" <> Enum.join(date, "-") <> " " <> Enum.join(hd(time), ":") <> " " <> dst
   end
 
   defp phase(x) do
