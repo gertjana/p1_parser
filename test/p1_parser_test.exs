@@ -8,6 +8,7 @@ defmodule P1ParserTest do
   doctest P1.Model.TotalEnergy
   doctest P1.Model.TariffIndicator
   doctest P1.Model.CurrentEnergy
+  doctest P1.Model.LongFailureLog
   doctest P1.Model.Voltage
   doctest P1.Model.Amperage
   doctest P1.Model.TextMessage

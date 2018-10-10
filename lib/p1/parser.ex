@@ -17,6 +17,7 @@ defmodule P1.Parser do
       tariff_indicator_parser(),
       total_energy_parser(),
       current_energy_parser(),
+      long_failures_log_parser(),
       amperage_parser(),
       message_parser(),
       voltage_parser(),
@@ -84,6 +85,22 @@ defmodule P1.Parser do
     |> ignore(string(")"))
   end
 
+  def event(previous \\ nil) do
+    previous
+    |> between(char("("), ts(), char(")"))
+    |> between(char("("), integer(), char("*"))
+    |> word()
+    |> ignore(char(")"))
+  end
+
+  #1-0:99.97.0(2)(0-0:96.7.19)(101208152415W)(0000000240*s)(101208151004W)(0000000301*s)
+  defp long_failures_log_parser do
+    map(string("1-0:99.97.0"), fn _ -> :long_failures_log end)
+    |> between(char("("), integer(), char(")"))
+    |> ignore(string("(0-0:96.7.19)"))
+    |> many(sequence([event()]))
+  end
+
   # 1-0:32.7.0(220.1*V)
   # 1-0:52.7.0(220.2*V)
   # 1-0:72.7.0(220.3*V)
@@ -126,6 +143,10 @@ defmodule P1.Parser do
     |> ignore(string(")"))
   end
 
+  defp ts(previous \\ nil) do
+    previous |> map(word_of(~r/\d+[SW]/), &(timestamp(&1)))
+  end
+
   defp timestamp(text) do
     dst = case String.last(text) do
       "S" -> "Summertime"
@@ -139,6 +160,8 @@ defmodule P1.Parser do
       |> Enum.chunk_every(3)
     "20" <> Enum.join(date, "-") <> " " <> Enum.join(hd(time), ":") <> " " <> dst
   end
+
+  # Helper functions and parsers
 
   defp phase(x) do
     case x do

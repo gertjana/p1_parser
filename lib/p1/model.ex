@@ -82,7 +82,6 @@ defmodule P1.Model do
   end
 
   defmodule CurrentEnergy do
-
     @moduledoc """
     How much energy is consumed or produced right now
 
@@ -93,6 +92,38 @@ defmodule P1.Model do
     ```
     """
     defstruct direction: nil, value: 0.0, unit: "kW"
+  end
+
+  defmodule LongFailure do
+    @moduledoc false
+    defstruct timestamp: "", duration: 0, unit: "s"
+  end
+
+  defmodule LongFailureLog do
+    @moduledoc """
+    list of failures, when the failure ended and how long it lasted
+
+    ## Example
+    ```
+    iex> P1.parse!("1-0:99.97.0(2)(0-0:96.7.19)(101208152415W)(0000000240*s)(101208151004W)(0000000301*s)") |> P1.to_struct
+    %P1.Model.LongFailureLog{
+    count: 2,
+    events: [
+      %P1.Model.LongFailure{
+        duration: 240,
+        timestamp: "2010-12-08 15:24:15 Wintertime",
+        unit: "s"
+      },
+      %P1.Model.LongFailure{
+        duration: 301,
+        timestamp: "2010-12-08 15:10:04 Wintertime",
+        unit: "s"
+      }
+    ]
+    }
+    ```
+    """
+    defstruct count: 0, events: []
   end
 
   defmodule Voltage do
@@ -165,6 +196,11 @@ defmodule P1.Model do
 
   def to_struct([:current_energy, :consume, value, unit]), do: %CurrentEnergy{direction: :consume, value: value, unit: unit}
   def to_struct([:current_energy, :produce, value, unit]), do: %CurrentEnergy{direction: :produce, value: value, unit: unit}
+
+  def to_struct([:long_failures_log, count, events]) do
+    %LongFailureLog{count: count, events: Enum.map(events,
+      fn ev -> %LongFailure{timestamp: Enum.at(ev, 0), duration: Enum.at(ev, 1), unit: Enum.at(ev, 2)} end)}
+  end
 
   def to_struct([:voltage, :l1, value, unit]), do: %Voltage{phase: :l1, value: value, unit: unit}
   def to_struct([:voltage, :l2, value, unit]), do: %Voltage{phase: :l2, value: value, unit: unit}
