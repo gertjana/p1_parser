@@ -33,7 +33,11 @@ telegram
 
 The docs can be found at [https://hexdocs.pm/p1_parser](https://hexdocs.pm/p1_parser).
 
-# Todo's
+## Contribute
+
+`|> fork |> feature branch |> pull request`
+
+## Todo's
 
  - ~~Parse units~~
  - ~~Parse Summer/Winter time information in timestamp~~
