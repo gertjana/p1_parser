@@ -23,6 +23,7 @@ defmodule P1Parser.Mixfile do
     [
       {:combine, "~> 0.10.0"},
       {:crc, "~> 0.9.1"},
+      {:hexate,  ">= 0.6.0"},
       {:credo, "~> 0.10.0", only: [:dev, :test], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev} 
     ]

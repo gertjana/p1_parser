@@ -121,6 +121,19 @@ defmodule P1.Model do
     defstruct phase: nil, value: 0.0, unit: "A"
   end
 
+  defmodule TextMessage do
+    @moduledoc """
+    A textmessage the smartmeter may send
+
+    ## Example
+    ```
+    iex> P1.parse!("0:96.13.0(416C6C20796F75722062617365206172652062656C6F6E6720746F207573)") |> P1.to_struct
+    %P1.Model.TextMessage{text: "All your base are belong to us"}
+    ```
+    """
+    defstruct text: ""
+  end
+
   defmodule Gas do
     @moduledoc """
     Gas volume consumed at the specified timestamp
@@ -134,6 +147,7 @@ defmodule P1.Model do
     defstruct timestamp: "", value: 0.0, unit: "m3"
   end
 
+  @doc false
   def to_struct([:header, manufacturer, model]), do: %Header{manufacturer: manufacturer, model: model}
 
   def to_struct([:version, version]), do: %Version{version: version}
@@ -159,6 +173,8 @@ defmodule P1.Model do
   def to_struct([:amperage, :l1, value, unit]), do: %Amperage{phase: :l1, value: value, unit: unit}
   def to_struct([:amperage, :l2, value, unit]), do: %Amperage{phase: :l2, value: value, unit: unit}
   def to_struct([:amperage, :l3, value, unit]), do: %Amperage{phase: :l3, value: value, unit: unit}
+
+  def to_struct([:text_message, text]), do: %TextMessage{text: text}
 
   def to_struct([:gas, timestamp, value, unit]), do: %Gas{timestamp: timestamp, value: value, unit: unit}
 end

@@ -18,6 +18,7 @@ defmodule P1.Parser do
       total_energy_parser(),
       current_energy_parser(),
       amperage_parser(),
+      message_parser(),
       voltage_parser(),
       gas_parser()
     ])
@@ -105,6 +106,13 @@ defmodule P1.Parser do
     |> between(char("("), integer(), char("*"))
     |> string("A")
     |> ignore(string(")"))
+  end
+
+  defp message_parser do
+    map(string("0:96.13.0"), fn _ -> :text_message end)
+    |> ignore(char("("))
+    |> map(word_of(~r/[0-9a-f]+/i), &(Hexate.decode(&1)))
+    |> ignore(char(")"))
   end
 
   # 0-1:24.2.1(101209112500W)(12785.123*m3)

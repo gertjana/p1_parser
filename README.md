@@ -1,4 +1,4 @@
-[![codebeat badge](https://codebeat.co/badges/bb2e3c59-1bfc-4cac-88e6-1a7064eca124)](https://codebeat.co/projects/github-com-gertjana-p1_parser-master) [![Build Status](https://travis-ci.org/gertjana/p1_parser.svg?branch=master)](https://travis-ci.org/gertjana/p1_parser)
+[![codebeat badge](https://codebeat.co/badges/bb2e3c59-1bfc-4cac-88e6-1a7064eca124)](https://codebeat.co/projects/github-com-gertjana-p1_parser-master) [![Build Status](https://travis-ci.org/gertjana/p1_parser.svg?branch=master)](https://travis-ci.org/gertjana/p1_parser)[![Hex.pm](https://img.shields.io/hexpm/v/p1_parser.svg)]()
 
 # P1Parser
 
@@ -14,9 +14,11 @@ def deps do
 end
 ```
 
+## Documentation 
+
 The docs can be found at [https://hexdocs.pm/p1_parser](https://hexdocs.pm/p1_parser).
 
-# todo's
+# Todo's
 
  - ~~Parse units~~
  - ~~Parse Summer/Winter time information in timestamp~~

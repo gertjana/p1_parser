@@ -1,5 +1,6 @@
 defmodule P1ParserTest do
   use ExUnit.Case
+
   doctest P1.Parser
   doctest P1.Model.Header
   doctest P1.Model.Version
@@ -9,6 +10,7 @@ defmodule P1ParserTest do
   doctest P1.Model.CurrentEnergy
   doctest P1.Model.Voltage
   doctest P1.Model.Amperage
+  doctest P1.Model.TextMessage
   doctest P1.Model.Gas
 
   test "send lines" do
@@ -34,8 +36,7 @@ defmodule P1ParserTest do
       1-0:52.36.0(00003)
       1-0:72.36.0(00000)
       0-
-      0:96.13.0(303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C
-      3D3E3F303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F)
+      0:96.13.0(416C6C20796F75722062617365206172652062656C6F6E6720746F207573)
       1-0:32.7.0(220.1*V)
       1-0:52.7.0(220.2*V)
       1-0:72.7.0(220.3*V)
@@ -67,12 +68,12 @@ defmodule P1ParserTest do
     assert results |> Enum.at(8) == {:ok, [:tariff_indicator, :normal]}
     assert results |> Enum.at(9) == {:ok, [:current_energy, :consume, 1.193, "kW"]}
     assert results |> Enum.at(10) == {:ok, [:current_energy, :produce, 0.0, "kW"]}
-    assert results |> Enum.at(23) == {:ok, [:voltage, :l1, 220.1, "V"]}
-    assert results |> Enum.at(24) == {:ok, [:voltage, :l2, 220.2, "V"]}
-    assert results |> Enum.at(25) == {:ok, [:voltage, :l3, 220.3, "V"]}
-    assert results |> Enum.at(26) == {:ok, [:amperage, :l1, 1, "A"]}
-    assert results |> Enum.at(27) == {:ok, [:amperage, :l2, 2, "A"]}
-    assert results |> Enum.at(28) == {:ok, [:amperage, :l3, 3, "A"]}
-    assert results |> Enum.at(37) == {:ok, [:gas, "2010-12-09 11:25:00 Wintertime", 12_785.123, "m3"]}
+    assert results |> Enum.at(22) == {:ok, [:voltage, :l1, 220.1, "V"]}
+    assert results |> Enum.at(23) == {:ok, [:voltage, :l2, 220.2, "V"]}
+    assert results |> Enum.at(24) == {:ok, [:voltage, :l3, 220.3, "V"]}
+    assert results |> Enum.at(25) == {:ok, [:amperage, :l1, 1, "A"]}
+    assert results |> Enum.at(26) == {:ok, [:amperage, :l2, 2, "A"]}
+    assert results |> Enum.at(27) == {:ok, [:amperage, :l3, 3, "A"]}
+    assert results |> Enum.at(36) == {:ok, [:gas, "2010-12-09 11:25:00 Wintertime", 12_785.123, "m3"]}
   end
 end
