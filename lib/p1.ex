@@ -78,7 +78,7 @@ defmodule P1 do
       [:total_energy, :consume, :low, 123_456.789, "kWh"]
 
   """
-  @spec parse(String.t()) :: term
+  @spec parse!(String.t()) :: term
   def parse!(line) do
     case Combine.parse(line, Parser.parser()) do
       {:error, reason} -> raise reason
