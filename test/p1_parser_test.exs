@@ -1,6 +1,5 @@
 defmodule P1ParserTest do
   use ExUnit.Case
-  alias P1.Parser, as: Parsers
   doctest P1.Parser
   doctest P1.Model.Header
   doctest P1.Model.Version

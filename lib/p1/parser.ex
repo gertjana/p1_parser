@@ -124,7 +124,7 @@ defmodule P1.Parser do
       "W" -> "Wintertime"
     end
     [date | time] = text
-      |> String.slice(0..String.length(text)-1)
+      |> String.slice(0 .. String.length(text) - 1)
       |> String.codepoints
       |> Enum.chunk_every(2)
       |> Enum.map(&Enum.join/1)
