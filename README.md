@@ -23,8 +23,10 @@ now the smartmeter will ouput a telegram every 10 seconds. split them into lines
 ```elixir
 telegram 
   |> String.split("\n")
-  |> Enum.map(fn line -> P1.parse(line)                 # parses it to a list of elixir types
-  |> Enum.map(fn {:ok, line} -> P1.to_struct(line) end) # converts them into structs
+  |> Enum.map(fn line -> line 
+                         |> P1.parse!     # Parses into elixir types
+                         |> P1.to_struct  # Converts to a struct
+              end)
 ```
 
 ## Documentation 
