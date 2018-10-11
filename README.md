@@ -18,7 +18,11 @@ end
 ## Usage 
 
 Get a usb to p1 cable and plug it in, you should see it appear as a serial device
+
+On an raspberry pi it will show up as `/dev/ttyUSB0`
+
 now the smartmeter will ouput a telegram every 10 seconds. split them into lines.
+
 each line can now be parsed like this
 ```elixir
 iex> P1.parse!("1-0:1.8.1(123456.789*kWh)") |> P1.to_struct
