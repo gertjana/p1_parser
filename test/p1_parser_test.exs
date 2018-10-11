@@ -69,6 +69,7 @@ defmodule P1ParserTest do
     assert results |> Enum.at(8) == {:ok, [:tariff_indicator, :normal]}
     assert results |> Enum.at(9) == {:ok, [:current_energy, :consume, 1.193, "kW"]}
     assert results |> Enum.at(10) == {:ok, [:current_energy, :produce, 0.0, "kW"]}
+    assert results |> Enum.at(13) == {:ok, [:long_failures_log, 2, [["2010-12-08 15:24:15 Wintertime", 240, "s"],["2010-12-08 15:10:04 Wintertime", 301, "s"]]]}
     assert results |> Enum.at(22) == {:ok, [:voltage, :l1, 220.1, "V"]}
     assert results |> Enum.at(23) == {:ok, [:voltage, :l2, 220.2, "V"]}
     assert results |> Enum.at(24) == {:ok, [:voltage, :l3, 220.3, "V"]}
