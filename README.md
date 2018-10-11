@@ -18,15 +18,14 @@ end
 ## Usage 
 
 Get a usb to p1 cable and plug it in, you should see it appear as a serial device
-now the smartmeter will ouput a telegram every 10 seconds. split them into lines and Parse them by
-
+now the smartmeter will ouput a telegram every 10 seconds. split them into lines.
+each line can now be parsed like this
 ```elixir
-telegram 
-  |> String.split("\n")
-  |> Enum.map(fn line -> line 
-                         |> P1.parse!     # Parses into elixir types
-                         |> P1.to_struct  # Converts to a struct
-              end)
+iex> P1.parse!("1-0:1.8.1(123456.789*kWh)") |> P1.to_struct
+```
+Which will result in
+```
+%P1.Model.TotalEnergy{direction: :consume, tariff: :low, unit: "kWh", value: 123456.789}
 ```
 
 ## Documentation 
@@ -44,4 +43,5 @@ The docs can be found at [https://hexdocs.pm/p1_parser](https://hexdocs.pm/p1_pa
  - ~~return structs~~
  - Parse entire telegram
  - Validate checksum
+ - Convert timestamps to proper date/times
 
