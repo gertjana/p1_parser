@@ -1,4 +1,4 @@
-defmodule P1.Model do
+defmodule P1.Telegram do
   @moduledoc """
     Contains structs for parsed P1 lines
   """
@@ -9,8 +9,8 @@ defmodule P1.Model do
 
     ## Example
     ```
-    iex> P1.parse!("/ISk5MT382-1000") |> P1.to_struct
-    %P1.Model.Header{manufacturer: "ISk", model: "MT382-1000"}
+    iex> P1.parse!("/ISk5\\2MT382-1000") |> P1.to_struct
+    %P1.Telegram.Header{manufacturer: "ISk", model: "\\2MT382-1000"}
     ```
     """
     defstruct manufacturer: "", model: ""
@@ -23,7 +23,7 @@ defmodule P1.Model do
     ## Example
     ```
     iex> P1.parse!("1-3:0.2.8(50)") |> P1.to_struct
-    %P1.Model.Version{version: "50"}
+    %P1.Telegram.Version{version: "50"}
     ```
     """
     defstruct version: ""
@@ -36,7 +36,7 @@ defmodule P1.Model do
     ## Example
     ```
     iex> P1.parse!("0-0:96.1.1(4B384547303034303436333935353037)") |> P1.to_struct
-    %P1.Model.EquipmentIdentifier{identifier: "4B384547303034303436333935353037"}
+    %P1.Telegram.EquipmentIdentifier{identifier: "4B384547303034303436333935353037"}
     ```
     """
     defstruct identifier: ""
@@ -49,7 +49,7 @@ defmodule P1.Model do
     ## Example
     ```
     iex> P1.parse!("0-0:1.0.0(101209113020W)") |> P1.to_struct
-    %P1.Model.Timestamp{timestamp: "2010-12-09 11:30:20 Wintertime"}
+    %P1.Telegram.Timestamp{timestamp: "2010-12-09 11:30:20 Wintertime"}
     ```
     """
     defstruct timestamp: ""
@@ -62,7 +62,7 @@ defmodule P1.Model do
     ## Example
     ```
     iex> P1.parse!("1-0:1.8.1(123456.789*kWh)") |> P1.to_struct
-    %P1.Model.TotalEnergy{direction: :consume, tariff: :low, unit: "kWh", value: 123456.789}
+    %P1.Telegram.TotalEnergy{direction: :consume, tariff: :low, unit: "kWh", value: 123456.789}
     ```
     """
     defstruct direction: nil, tariff: nil, value: 0.0, unit: "kWh"
@@ -75,7 +75,7 @@ defmodule P1.Model do
     ## Example
     ```
     iex> P1.parse!("0-0:96.14.0(0002)") |> P1.to_struct
-    %P1.Model.TariffIndicator{indicator: :normal}
+    %P1.Telegram.TariffIndicator{indicator: :normal}
     ```
     """
     defstruct indicator: nil
@@ -88,7 +88,7 @@ defmodule P1.Model do
     ## Example
     ```
     iex> P1.parse!("1-0:1.7.0(01.193*kW)") |> P1.to_struct
-    %P1.Model.CurrentEnergy{direction: :consume, unit: "kW", value: 1.193}
+    %P1.Telegram.CurrentEnergy{direction: :consume, unit: "kW", value: 1.193}
     ```
     """
     defstruct direction: nil, value: 0.0, unit: "kW"
@@ -106,15 +106,15 @@ defmodule P1.Model do
     ## Example
     ```
     iex> P1.parse!("1-0:99.97.0(2)(0-0:96.7.19)(101208152415W)(0000000240*s)(101208151004W)(0000000301*s)") |> P1.to_struct
-    %P1.Model.LongFailureLog{
+    %P1.Telegram.LongFailureLog{
     count: 2,
     events: [
-      %P1.Model.LongFailure{
+      %P1.Telegram.LongFailure{
         duration: 240,
         timestamp: "2010-12-08 15:24:15 Wintertime",
         unit: "s"
       },
-      %P1.Model.LongFailure{
+      %P1.Telegram.LongFailure{
         duration: 301,
         timestamp: "2010-12-08 15:10:04 Wintertime",
         unit: "s"
@@ -133,7 +133,7 @@ defmodule P1.Model do
     ## Example
     ```
     iex> P1.parse!("1-0:32.7.0(220.1*V)") |> P1.to_struct
-    %P1.Model.Voltage{phase: :l1, unit: "V", value: 220.1}
+    %P1.Telegram.Voltage{phase: :l1, unit: "V", value: 220.1}
     ```
     """
     defstruct phase: nil, value: 0.0, unit: "V"
@@ -146,7 +146,7 @@ defmodule P1.Model do
     ## Example
     ```
     iex> P1.parse!("1-0:51.7.0(002*A)") |> P1.to_struct
-    %P1.Model.Amperage{phase: :l2, unit: "A", value: 2}
+    %P1.Telegram.Amperage{phase: :l2, unit: "A", value: 2}
     ```
     """
     defstruct phase: nil, value: 0.0, unit: "A"
@@ -159,7 +159,7 @@ defmodule P1.Model do
     ## Example
     ```
     iex> P1.parse!("0:96.13.0(416C6C20796F75722062617365206172652062656C6F6E6720746F207573)") |> P1.to_struct
-    %P1.Model.TextMessage{text: "All your base are belong to us"}
+    %P1.Telegram.TextMessage{text: "All your base are belong to us"}
     ```
     """
     defstruct text: ""
@@ -172,7 +172,7 @@ defmodule P1.Model do
     ## Example
     ```
     iex> P1.parse!("0-1:24.2.1(101209112500W)(12785.123*m3)") |> P1.to_struct
-    %P1.Model.Gas{timestamp: "2010-12-09 11:25:00 Wintertime", unit: "m3", value: 12785.123}
+    %P1.Telegram.Gas{timestamp: "2010-12-09 11:25:00 Wintertime", unit: "m3", value: 12785.123}
     ```
     """
     defstruct timestamp: "", value: 0.0, unit: "m3"

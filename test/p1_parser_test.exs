@@ -2,21 +2,21 @@ defmodule P1ParserTest do
   use ExUnit.Case
 
   doctest P1.Parser
-  doctest P1.Model.Header
-  doctest P1.Model.Version
-  doctest P1.Model.EquipmentIdentifier
-  doctest P1.Model.TotalEnergy
-  doctest P1.Model.TariffIndicator
-  doctest P1.Model.CurrentEnergy
-  doctest P1.Model.LongFailureLog
-  doctest P1.Model.Voltage
-  doctest P1.Model.Amperage
-  doctest P1.Model.TextMessage
-  doctest P1.Model.Gas
+  doctest P1.Telegram.Header
+  doctest P1.Telegram.Version
+  doctest P1.Telegram.EquipmentIdentifier
+  doctest P1.Telegram.TotalEnergy
+  doctest P1.Telegram.TariffIndicator
+  doctest P1.Telegram.CurrentEnergy
+  doctest P1.Telegram.LongFailureLog
+  doctest P1.Telegram.Voltage
+  doctest P1.Telegram.Amperage
+  doctest P1.Telegram.TextMessage
+  doctest P1.Telegram.Gas
 
   test "send lines" do
     lines = """
-      /ISk5MT382-1000
+      /ISk5\\2MT382-1000
       1-3:0.2.8(50)
       0-0:1.0.0(101209113020W)
       0-0:96.1.1(4B384547303034303436333935353037)
@@ -58,7 +58,7 @@ defmodule P1ParserTest do
 
     results = lines |> Enum.map(fn line -> P1.parse(line) end)
 
-    assert results |> Enum.at(0) == {:ok, [:header, "ISk", "MT382-1000"]}
+    assert results |> Enum.at(0) == {:ok, [:header, "ISk", "\\2MT382-1000"]}
     assert results |> Enum.at(1) == {:ok, [:version, "50"]}
     assert results |> Enum.at(2) == {:ok, [:timestamp, "2010-12-09 11:30:20 Wintertime"]}
     assert results |> Enum.at(3) == {:ok, [:equipment_identifier, "4B384547303034303436333935353037"]}

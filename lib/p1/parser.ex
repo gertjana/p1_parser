@@ -8,7 +8,21 @@ defmodule P1.Parser do
 
   # credo:disable-for-this-file Credo.Check.Refactor.PipeChainStart
 
-  def parser do
+  def parse(line) do
+    case Combine.parse(line, parser()) do
+      {:error, reason} -> {:error, reason}
+      result           -> {:ok, result}
+    end
+  end
+
+  def parse!(line) do
+    case Combine.parse(line, parser()) do
+      {:error, reason} -> raise reason
+      result           -> result
+    end
+  end
+
+  defp parser do
     choice(nil, [
       header_parser(),
       version_parser(),
@@ -85,7 +99,7 @@ defmodule P1.Parser do
     |> ignore(string(")"))
   end
 
-  def event(previous \\ nil) do
+  defp event(previous \\ nil) do
     previous
     |> between(char("("), ts(), char(")"))
     |> between(char("("), integer(), char("*"))

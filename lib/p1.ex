@@ -1,5 +1,5 @@
 defmodule P1 do
-  alias P1.Model, as: Model
+  alias P1.Telegram, as: Telegram
   alias P1.Parser, as: Parser
   @moduledoc """
     P1 is a communication standard for Dutch Smartmeters
@@ -62,12 +62,7 @@ defmodule P1 do
 
   """
   @spec parse(String.t()) :: {:ok, term} | {:error, String.t()}
-  def parse(line) do
-    case Combine.parse(line, Parser.parser()) do
-      {:error, reason} -> {:error, reason}
-      result           -> {:ok, result}
-    end
-  end
+  defdelegate parse(line), to: Parser, as: :parse
 
   @doc """
   Parses a line of text according to the P1 protocol
@@ -79,12 +74,7 @@ defmodule P1 do
 
   """
   @spec parse!(String.t()) :: term
-  def parse!(line) do
-    case Combine.parse(line, Parser.parser()) do
-      {:error, reason} -> raise reason
-      result           -> result
-    end
-  end
+  defdelegate parse!(line), to: Parser, as: :parse!
 
   @doc """
   Converts parsed line to a struct
@@ -92,9 +82,10 @@ defmodule P1 do
   ## Example
 
         iex>P1.to_struct([:version, "50"])
-        %P1.Model.Version(version: "50")
+        %P1.Telegram.Version(version: "50")
 
   """
-  def to_struct(obj), do: Model.to_struct(obj)
+  @spec to_struct(list) :: struct
+  defdelegate to_struct(obj), to: Telegram, as: :to_struct
 
 end
