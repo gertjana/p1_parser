@@ -145,11 +145,12 @@ defmodule P1.Telegram do
   defmodule VoltageSwells do
     @moduledoc """
     Number of voltage swells for a phase
+
+    ## Example
     ```
     iex> P1.parse!("1-0:32.36.0(00003)") |> P1.to_struct
     %P1.Telegram.VoltageSwells{phase: :l1, count: 3}
     ```
-    ## Example
     """
     defstruct phase: nil, count: 0
   end
@@ -157,11 +158,12 @@ defmodule P1.Telegram do
   defmodule VoltageSags do
     @moduledoc """
     Number of voltage sags for a phase
+
+    ## Example
     ```
     iex> P1.parse!("1-0:32.32.0(00002)") |> P1.to_struct
     %P1.Telegram.VoltageSags{phase: :l1, count: 2}
     ```
-    ## Example
     """
     defstruct phase: nil, count: 0
   end

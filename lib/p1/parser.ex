@@ -8,6 +8,7 @@ defmodule P1.Parser do
 
   # credo:disable-for-this-file Credo.Check.Refactor.PipeChainStart
 
+  @doc false
   def parse(line) do
     case Combine.parse(line, parser()) do
       {:error, reason} -> {:error, reason}
@@ -15,6 +16,7 @@ defmodule P1.Parser do
     end
   end
 
+  @doc false
   def parse!(line) do
     case Combine.parse(line, parser()) do
       {:error, reason} -> raise reason
