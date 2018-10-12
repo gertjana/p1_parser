@@ -242,22 +242,22 @@ defmodule P1.Telegram do
 
   def to_struct([:timestamp, timestamp]), do: %Timestamp{timestamp: timestamp}
 
-  def to_struct([:total_energy, :consume, :normal, value, unit]), do: %TotalEnergy{direction: :consume, tariff: :normal, value: value, unit: unit}
-  def to_struct([:total_energy, :consume, :low, value, unit]),    do: %TotalEnergy{direction: :consume, tariff: :low, value: value, unit: unit}
-  def to_struct([:total_energy, :produce, :normal, value, unit]), do: %TotalEnergy{direction: :produce, tariff: :normal, value: value, unit: unit}
-  def to_struct([:total_energy, :produce, :low, value, unit]),    do: %TotalEnergy{direction: :produce, tariff: :low, value: value, unit: unit}
+  def to_struct([:total_energy, :consume, :normal, {value, unit}]), do: %TotalEnergy{direction: :consume, tariff: :normal, value: value, unit: unit}
+  def to_struct([:total_energy, :consume, :low, {value, unit}]),    do: %TotalEnergy{direction: :consume, tariff: :low, value: value, unit: unit}
+  def to_struct([:total_energy, :produce, :normal, {value, unit}]), do: %TotalEnergy{direction: :produce, tariff: :normal, value: value, unit: unit}
+  def to_struct([:total_energy, :produce, :low, {value, unit}]),    do: %TotalEnergy{direction: :produce, tariff: :low, value: value, unit: unit}
 
   def to_struct([:tariff_indicator, indicator]), do: %TariffIndicator{indicator: indicator}
 
-  def to_struct([:current_energy, :consume, value, unit]), do: %CurrentEnergy{direction: :consume, value: value, unit: unit}
-  def to_struct([:current_energy, :produce, value, unit]), do: %CurrentEnergy{direction: :produce, value: value, unit: unit}
+  def to_struct([:current_energy, :consume, {value, unit}]), do: %CurrentEnergy{direction: :consume, value: value, unit: unit}
+  def to_struct([:current_energy, :produce, {value, unit}]), do: %CurrentEnergy{direction: :produce, value: value, unit: unit}
 
   def to_struct([:power_failures, count]), do: %PowerFailure{type: :short, count: count}
   def to_struct([:long_power_failures, count]), do: %PowerFailure{type: :long, count: count}
 
   def to_struct([:long_failures_log, count, events]) do
     %LongFailureLog{count: count, events: Enum.map(events,
-      fn ev -> %LongFailure{timestamp: Enum.at(ev, 0), duration: Enum.at(ev, 1), unit: Enum.at(ev, 2)} end)}
+      fn ev -> %LongFailure{timestamp: Enum.at(ev, 0), duration: elem(Enum.at(ev, 1),0), unit: elem(Enum.at(ev, 1),1)} end)}
   end
 
   def to_struct([:voltage_swells, :l1, count]), do: %VoltageSwells{phase: :l1, count: count}
@@ -268,13 +268,13 @@ defmodule P1.Telegram do
   def to_struct([:voltage_sags, :l2, count]), do: %VoltageSags{phase: :l2, count: count}
   def to_struct([:voltage_sags, :l3, count]), do: %VoltageSags{phase: :l3, count: count}
 
-  def to_struct([:voltage, :l1, value, unit]), do: %Voltage{phase: :l1, value: value, unit: unit}
-  def to_struct([:voltage, :l2, value, unit]), do: %Voltage{phase: :l2, value: value, unit: unit}
-  def to_struct([:voltage, :l3, value, unit]), do: %Voltage{phase: :l3, value: value, unit: unit}
+  def to_struct([:voltage, :l1, {value, unit}]), do: %Voltage{phase: :l1, value: value, unit: unit}
+  def to_struct([:voltage, :l2, {value, unit}]), do: %Voltage{phase: :l2, value: value, unit: unit}
+  def to_struct([:voltage, :l3, {value, unit}]), do: %Voltage{phase: :l3, value: value, unit: unit}
 
-  def to_struct([:amperage, :l1, value, unit]), do: %Amperage{phase: :l1, value: value, unit: unit}
-  def to_struct([:amperage, :l2, value, unit]), do: %Amperage{phase: :l2, value: value, unit: unit}
-  def to_struct([:amperage, :l3, value, unit]), do: %Amperage{phase: :l3, value: value, unit: unit}
+  def to_struct([:amperage, :l1, {value, unit}]), do: %Amperage{phase: :l1, value: value, unit: unit}
+  def to_struct([:amperage, :l2, {value, unit}]), do: %Amperage{phase: :l2, value: value, unit: unit}
+  def to_struct([:amperage, :l3, {value, unit}]), do: %Amperage{phase: :l3, value: value, unit: unit}
 
   def to_struct([:text_message, text]), do: %TextMessage{text: text}
 
@@ -282,5 +282,5 @@ defmodule P1.Telegram do
 
   def to_struct([:mbus_equipment_identifier, channel, identifier]), do: %EquipmentIdentifier{channel: channel, identifier: identifier}
 
-  def to_struct([:mbus_device_measurement, channel, timestamp, value, unit]), do: %MbusDeviceMeasurement{channel: channel, timestamp: timestamp, value: value, unit: unit}
+  def to_struct([:mbus_device_measurement, channel, timestamp, {value, unit}]), do: %MbusDeviceMeasurement{channel: channel, timestamp: timestamp, value: value, unit: unit}
 end

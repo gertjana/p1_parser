@@ -59,7 +59,7 @@ defmodule P1.Parser do
   # 1-3:0.2.8(50)
   defp version_parser do
     map(string("1-3:0.2.8"), fn _ -> :version end)
-    |> between(char("("), word(), char(")"))
+    |> parens(word())
   end
 
   # 0-0:96.1.1(4B384547303034303436333935353037)
@@ -68,15 +68,13 @@ defmodule P1.Parser do
     map(string("0-"), fn _ -> :equipment_identifier end)
     |> digit()
     |> ignore(string(":96.1.1"))
-    |> between(char("("), word_of(~r/[0-9a-f]+/i), char(")"))
+    |> parens(word_of(~r/[0-9a-f]+/i))
   end
 
   # 0-0:1.0.0(101209113020W)
   defp timestamp_parser do
     map(string("0-0:1.0.0"), fn _ -> :timestamp end)
-    |> ignore(char("("))
-    |> map(word_of(~r/\d+[SW]/), &(timestamp(&1)))
-    |> ignore(char(")"))
+    |> parens(map(word_of(~r/\d+[SW]/), &(timestamp(&1))))
   end
 
   # 1-0:1.8.1(123456.789*kWh)
@@ -88,15 +86,13 @@ defmodule P1.Parser do
     |> map(digit(), &(direction(&1)))
     |> ignore(string(".8."))
     |> map(digit(), &(tariff(&1)))
-    |> between(char("("), float(), char("*"))
-    |> string("kWh")
-    |> ignore(string(")"))
+    |> parens(unit(float()))
   end
 
   # 0-0:96.14.0(0002)
   defp tariff_indicator_parser do
     map(string("0-0:96.14.0"), fn _ -> :tariff_indicator end)
-    |> between(char("("), map(integer(), &(tariff(&1))) , char(")"))
+    |> parens(map(integer(), &(tariff(&1))))
   end
 
   # 1-0:1.7.0(01.193*kW)
@@ -106,35 +102,31 @@ defmodule P1.Parser do
     |> map(digit(), &(direction(&1)))
     |> ignore(string(".7."))
     |> ignore(digit())
-    |> between(char("("), float(), char("*"))
-    |> string("kW")
-    |> ignore(string(")"))
+    |> parens(unit(float()))
   end
 
   defp event(previous \\ nil) do
     previous
-    |> between(char("("), ts(), char(")"))
-    |> between(char("("), integer(), char("*"))
-    |> word()
-    |> ignore(char(")"))
+    |> parens(ts())
+    |> parens(unit(integer())) 
   end
 
   # 0-0:96.7.21(00004)
   defp power_failures_parser do
     map(string("0-0:96.7.21"), fn _ -> :power_failures end)
-    |> between(char("("), integer(), char(")"))
+    |> parens(integer())
   end
 
   # 0-0:96.7.9(00002)
   defp long_power_failures_parser do
     map(string("0-0:96.7.9"), fn _ -> :long_power_failures end)
-    |> between(char("("), integer(), char(")"))
+    |> parens(integer())
   end
 
   # 1-0:99.97.0(2)(0-0:96.7.19)(101208152415W)(0000000240*s)(101208151004W)(0000000301*s)
   defp long_failures_log_parser do
     map(string("1-0:99.97.0"), fn _ -> :long_failures_log end)
-    |> between(char("("), integer(), char(")"))
+    |> parens(integer())
     |> ignore(string("(0-0:96.7.19)"))
     |> many(sequence([event()]))
   end
@@ -146,7 +138,7 @@ defmodule P1.Parser do
     map(string("1-0:"), fn _ -> :voltage_sags end)
     |> map(both(digit(), digit(), fn a, b -> Enum.join([a, b]) |> String.to_integer end), &(phase(&1)))
     |> ignore(string(".32.0"))
-    |> between(char("("), integer(), char(")"))
+    |> parens(integer())
   end
 
   # 1-0:32.36.0(00000)
@@ -156,7 +148,7 @@ defmodule P1.Parser do
     map(string("1-0:"), fn _ -> :voltage_swells end)
     |> map(both(digit(), digit(), fn a, b -> Enum.join([a, b]) |> String.to_integer end), &(phase(&1)))
     |> ignore(string(".36.0"))
-    |> between(char("("), integer(), char(")"))
+    |> parens(integer())
   end
 
   # 1-0:32.7.0(220.1*V)
@@ -166,9 +158,7 @@ defmodule P1.Parser do
     map(string("1-0:"), fn _ -> :voltage end)
     |> map(both(digit(), digit(), fn a, b -> Enum.join([a, b]) |> String.to_integer end), &(phase(&1)))
     |> ignore(string(".7.0"))
-    |> between(char("("), float(), char("*"))
-    |> string("V")
-    |> ignore(string(")"))
+    |> parens(unit(float(), string("V")))
   end
 
   # 1-0:31.7.0(001*A)
@@ -178,9 +168,7 @@ defmodule P1.Parser do
     map(string("1-0:"), fn _ -> :amperage end)
     |> map(both(digit(), digit(), fn a, b -> Enum.join([a, b]) |> String.to_integer end), &(phase(&1)))
     |> ignore(string(".7.0"))
-    |> between(char("("), integer(), char("*"))
-    |> string("A")
-    |> ignore(string(")"))
+    |> parens(unit(integer(), string("A")))
   end
 
   # 1-0:21.7.0(01.111*kW)
@@ -191,19 +179,15 @@ defmodule P1.Parser do
   # 1-0:62.7.0(06.666*kW)
   defp active_power_parser do
     map(string("1-0:"), fn _ -> :active_power end)
-    |> map(digit(), &(phase(&1)))
+    |> map(digit(), &(active_power_phase(&1)))
     |> map(digit(), &(direction(&1)))
     |> ignore(string(".7.0"))
-    |> between(char("("), float(), char("*"))
-    |> string("kW")
-    |> ignore(string(")"))
+    |> parens(unit(float(), string("kW")))
   end
 
   defp message_parser do
     map(string("0:96.13.0"), fn _ -> :text_message end)
-    |> ignore(char("("))
-    |> map(word_of(~r/[0-9a-f]+/i), &(Hexate.decode(&1)))
-    |> ignore(char(")"))
+    |>parens(map(word_of(~r/[0-9a-f]+/i), &(Hexate.decode(&1))))
   end
 
   # 0-1:24.1.0(003)
@@ -211,7 +195,7 @@ defmodule P1.Parser do
     map(string("0-"), fn _ -> :mbus_device_type end)
     |> digit()
     |> ignore(string(":24.1.0"))
-      |> between(char("("), integer(), char(")"))
+    |> parens(integer())
   end
 
   # 0-1:96.1.0(3232323241424344313233343536373839)
@@ -219,7 +203,7 @@ defmodule P1.Parser do
     map(string("0-"), fn _ -> :mbus_equipment_identifier end)
     |> digit()
     |> ignore(string(":96.1.0"))
-    |> between(char("("), word_of(~r/[0-9a-f]+/i), char(")"))
+    |> parens(word_of(~r/[0-9a-f]+/i))
   end
 
   # 0-1:24.2.1(101209112500W)(12785.123*m3)
@@ -227,13 +211,11 @@ defmodule P1.Parser do
     map(string("0-"), fn _ -> :mbus_device_measurement end)
     |> digit()
     |> ignore(string(":24.2.1"))
-    |> ignore(char("("))
-    |> map(word_of(~r/\d+[SW]/), &(timestamp(&1)))
-    |> ignore(char(")"))
-    |> between(char("("), float(), char("*"))
-    |> string("m3")
-    |> ignore(string(")"))
+    |> parens(ts())
+    |> parens(unit(float()))
   end
+
+  # Helper functions
 
   defp ts(previous \\ nil) do
     previous |> map(word_of(~r/\d+[SW]/), &(timestamp(&1)))
@@ -253,7 +235,17 @@ defmodule P1.Parser do
     "20" <> Enum.join(date, "-") <> " " <> Enum.join(hd(time), ":") <> " " <> dst
   end
 
-  # Helper functions and parsers
+  def parens(previous, parser) do 
+    previous |> between(ignore(char("(")), parser, ignore(char(")")))
+  end
+
+  def unit(parser) do
+    pair_both(parser, pair_right(ignore(char("*")), word()))    
+  end
+
+  def unit(parser, unit) do
+    pair_both(parser, pair_right(ignore(char("*")), unit))
+  end
 
   defp phase(x) do
     case x do
@@ -261,6 +253,14 @@ defmodule P1.Parser do
       l when l in [4, 51, 52] -> :l2
       l when l in [6, 71, 72] -> :l3
        _ -> x
+    end
+  end
+
+  defp active_power_phase(x) do
+    case x do
+      2 -> :l1
+      4 -> :l2
+      6 -> :l3
     end
   end
 
