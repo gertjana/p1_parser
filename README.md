@@ -10,7 +10,7 @@ Parses telegram's as they are output through the P1 serial port of a smartmeter
 ```elixir
 def deps do
   [
-    {:p1_parser, "~> 0.1.3"}
+    {:p1_parser, "~> 0.1.4"}
   ]
 end
 ```
