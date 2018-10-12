@@ -31,15 +31,16 @@ defmodule P1.Telegram do
 
   defmodule EquipmentIdentifier do
     @moduledoc """
-    Unique identifier for this Smartmeter
+    Unique identifier for this Smartmeter,
+    channel 0 is the smartmeter itself, higher numbers are mbus connected devices, for instance water or gas meters
 
     ## Example
     ```
     iex> P1.parse!("0-0:96.1.1(4B384547303034303436333935353037)") |> P1.to_struct
-    %P1.Telegram.EquipmentIdentifier{identifier: "4B384547303034303436333935353037"}
+    %P1.Telegram.EquipmentIdentifier{channel: 0, identifier: "4B384547303034303436333935353037"}
     ```
     """
-    defstruct identifier: ""
+    defstruct channel: 0, identifier: ""
   end
 
   defmodule Timestamp do
@@ -94,6 +95,21 @@ defmodule P1.Telegram do
     defstruct direction: nil, value: 0.0, unit: "kW"
   end
 
+  defmodule PowerFailure do
+    @moduledoc """
+    Power failures count, split into short and long power failures
+
+    ## Example
+    ```
+    iex> P1.parse!("0-0:96.7.21(00004)") |> P1.to_struct
+    %P1.Telegram.PowerFailure{type: :short, count: 4}
+    iex> P1.parse!("0-0:96.7.9(00002)") |> P1.to_struct
+    %P1.Telegram.PowerFailure{type: :long, count: 2}
+    ```
+    """
+    defstruct type: nil, count: 0
+  end
+
   defmodule LongFailure do
     @moduledoc false
     defstruct timestamp: "", duration: 0, unit: "s"
@@ -124,6 +140,30 @@ defmodule P1.Telegram do
     ```
     """
     defstruct count: 0, events: []
+  end
+
+  defmodule VoltageSwells do
+    @moduledoc """
+    Number of voltage swells for a phase
+    ```
+    iex> P1.parse!("1-0:32.36.0(00003)") |> P1.to_struct
+    %P1.Telegram.VoltageSwells{phase: :l1, count: 3}
+    ```
+    ## Example
+    """
+    defstruct phase: nil, count: 0
+  end
+
+  defmodule VoltageSags do
+    @moduledoc """
+    Number of voltage sags for a phase
+    ```
+    iex> P1.parse!("1-0:32.32.0(00002)") |> P1.to_struct
+    %P1.Telegram.VoltageSags{phase: :l1, count: 2}
+    ```
+    ## Example
+    """
+    defstruct phase: nil, count: 0
   end
 
   defmodule Voltage do
@@ -165,17 +205,30 @@ defmodule P1.Telegram do
     defstruct text: ""
   end
 
-  defmodule Gas do
+  defmodule MbusDeviceType do
     @moduledoc """
-    Gas volume consumed at the specified timestamp
+    Mbus device type
+
+    ## Example
+    ```
+    iex> P1.parse!("0-1:24.1.0(0003)") |> P1.to_struct
+    %P1.Telegram.MbusDeviceType{channel: 1, type: 3}
+    ```
+    """
+    defstruct channel: 0, type: 0
+  end
+
+  defmodule MbusDeviceMeasurement do
+    @moduledoc """
+    Measurement from mbus device measured at the specified timestamp
 
     ## Example
     ```
     iex> P1.parse!("0-1:24.2.1(101209112500W)(12785.123*m3)") |> P1.to_struct
-    %P1.Telegram.Gas{timestamp: "2010-12-09 11:25:00 Wintertime", unit: "m3", value: 12785.123}
+    %P1.Telegram.MbusDeviceMeasurement{channel: 1, timestamp: "2010-12-09 11:25:00 Wintertime", unit: "m3", value: 12785.123}
     ```
     """
-    defstruct timestamp: "", value: 0.0, unit: "m3"
+    defstruct channel: 0, timestamp: "", value: 0.0, unit: "m3"
   end
 
   @doc false
@@ -183,7 +236,7 @@ defmodule P1.Telegram do
 
   def to_struct([:version, version]), do: %Version{version: version}
 
-  def to_struct([:equipment_identifier, identifier]), do: %EquipmentIdentifier{identifier: identifier}
+  def to_struct([:equipment_identifier, channel, identifier]), do: %EquipmentIdentifier{channel: channel, identifier: identifier}
 
   def to_struct([:timestamp, timestamp]), do: %Timestamp{timestamp: timestamp}
 
@@ -197,10 +250,21 @@ defmodule P1.Telegram do
   def to_struct([:current_energy, :consume, value, unit]), do: %CurrentEnergy{direction: :consume, value: value, unit: unit}
   def to_struct([:current_energy, :produce, value, unit]), do: %CurrentEnergy{direction: :produce, value: value, unit: unit}
 
+  def to_struct([:power_failures, count]), do: %PowerFailure{type: :short, count: count}
+  def to_struct([:long_power_failures, count]), do: %PowerFailure{type: :long, count: count}
+
   def to_struct([:long_failures_log, count, events]) do
     %LongFailureLog{count: count, events: Enum.map(events,
       fn ev -> %LongFailure{timestamp: Enum.at(ev, 0), duration: Enum.at(ev, 1), unit: Enum.at(ev, 2)} end)}
   end
+
+  def to_struct([:voltage_swells, :l1, count]), do: %VoltageSwells{phase: :l1, count: count}
+  def to_struct([:voltage_swells, :l2, count]), do: %VoltageSwells{phase: :l2, count: count}
+  def to_struct([:voltage_swells, :l3, count]), do: %VoltageSwells{phase: :l3, count: count}
+
+  def to_struct([:voltage_sags, :l1, count]), do: %VoltageSags{phase: :l1, count: count}
+  def to_struct([:voltage_sags, :l2, count]), do: %VoltageSags{phase: :l2, count: count}
+  def to_struct([:voltage_sags, :l3, count]), do: %VoltageSags{phase: :l3, count: count}
 
   def to_struct([:voltage, :l1, value, unit]), do: %Voltage{phase: :l1, value: value, unit: unit}
   def to_struct([:voltage, :l2, value, unit]), do: %Voltage{phase: :l2, value: value, unit: unit}
@@ -212,5 +276,9 @@ defmodule P1.Telegram do
 
   def to_struct([:text_message, text]), do: %TextMessage{text: text}
 
-  def to_struct([:gas, timestamp, value, unit]), do: %Gas{timestamp: timestamp, value: value, unit: unit}
+  def to_struct([:mbus_device_type, channel, type]), do: %MbusDeviceType{channel: channel, type: type}
+
+  def to_struct([:mbus_equipment_identifier, channel, identifier]), do: %EquipmentIdentifier{channel: channel, identifier: identifier}
+
+  def to_struct([:mbus_device_measurement, channel, timestamp, value, unit]), do: %MbusDeviceMeasurement{channel: channel, timestamp: timestamp, value: value, unit: unit}
 end

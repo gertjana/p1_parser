@@ -29,7 +29,7 @@ iex> P1.parse!("1-0:1.8.1(123456.789*kWh)") |> P1.to_struct
 ```
 Which will result in
 ```
-%P1.Model.TotalEnergy{direction: :consume, tariff: :low, unit: "kWh", value: 123456.789}
+%P1.Telegram.TotalEnergy{direction: :consume, tariff: :low, unit: "kWh", value: 123456.789}
 ```
 
 ## Documentation 

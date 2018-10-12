@@ -1,6 +1,6 @@
 defmodule P1 do
-  alias P1.Telegram, as: Telegram
   alias P1.Parser, as: Parser
+  alias P1.Telegram, as: Telegram
   @moduledoc """
     P1 is a communication standard for Dutch Smartmeters
 
