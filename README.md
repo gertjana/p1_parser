@@ -19,11 +19,11 @@ end
 
 Get a usb to p1 cable and plug it in, you should see it appear as a serial device
 
-On an raspberry pi it will show up as `/dev/ttyUSB0`
+On an raspberry pi it will show up as `/dev/ttyUSB0`, now the smartmeter will ouput a telegram every 10 seconds
 
-now the smartmeter will ouput a telegram every 10 seconds. split them into lines.
+use a serial libray like `nerves_uart` to connect to it and receive telegrams
 
-each line can now be parsed like this
+each line in the telegram can now be parsed like this
 ```elixir
 iex> P1.parse!("1-0:1.8.1(123456.789*kWh)") |> P1.to_struct
 ```
@@ -39,6 +39,10 @@ The docs can be found at [https://hexdocs.pm/p1_parser](https://hexdocs.pm/p1_pa
 ## Contribute
 
 `|> fork |> feature branch |> pull request`
+
+## Reference 
+
+I used https://www.netbeheernederland.nl/_upload/Files/Slimme_meter_15_a727fce1f1.pdf as a reference
 
 ## Todo's
 
