@@ -64,7 +64,7 @@ defmodule P1ParserTest do
 
     assert results |> Enum.at(0)  == {:ok, [:header, "ISk", "\\2MT382-1000"]}
     assert results |> Enum.at(1)  == {:ok, [:version, "50"]}
-    assert results |> Enum.at(2)  == {:ok, [:timestamp, "2010-12-09 11:30:20 Wintertime"]}
+    assert results |> Enum.at(2)  == {:ok, [:timestamp, "2010-12-09T11:30:20+02:00"]}
     assert results |> Enum.at(3)  == {:ok, [:equipment_identifier, 0, "4B384547303034303436333935353037"]}
     assert results |> Enum.at(4)  == {:ok, [:total_energy, :consume, :low, {123_456.789, "kWh"}]}
     assert results |> Enum.at(5)  == {:ok, [:total_energy, :consume, :normal, {123_456.789, "kWh"}]}
@@ -75,7 +75,7 @@ defmodule P1ParserTest do
     assert results |> Enum.at(10) == {:ok, [:current_energy, :produce, {0.0, "kW"}]}
     assert results |> Enum.at(11) == {:ok, [:power_failures, 4]}
     assert results |> Enum.at(12) == {:ok, [:long_power_failures, 2]}
-    assert results |> Enum.at(13) == {:ok, [:long_failures_log, 2, [["2010-12-08 15:24:15 Wintertime", {240, "s"}], ["2010-12-08 15:10:04 Wintertime", {301, "s"}]]]}
+    assert results |> Enum.at(13) == {:ok, [:long_failures_log, 2, [["2010-12-08T15:24:15+02:00", {240, "s"}], ["2010-12-08T15:10:04+02:00", {301, "s"}]]]}
     assert results |> Enum.at(14) == {:ok, [:voltage_sags, :l1, 2]}
     assert results |> Enum.at(15) == {:ok, [:voltage_sags, :l2, 1]}
     assert results |> Enum.at(16) == {:ok, [:voltage_sags, :l3, 0]}
@@ -96,6 +96,6 @@ defmodule P1ParserTest do
     assert results |> Enum.at(33) == {:ok, [:active_power, :l3, :produce, {6.666, "kW"}]}
     assert results |> Enum.at(34) == {:ok, [:mbus_device_type, 1, 3]}
     assert results |> Enum.at(35) == {:ok, [:mbus_equipment_identifier, 1, "3232323241424344313233343536373839"]}
-    assert results |> Enum.at(36) == {:ok, [:mbus_device_measurement, 1, "2010-12-09 11:25:00 Wintertime", {12_785.123, "m3"}]}
+    assert results |> Enum.at(36) == {:ok, [:mbus_device_measurement, 1, "2010-12-09T11:25:00+02:00", {12_785.123, "m3"}]}
   end
 end

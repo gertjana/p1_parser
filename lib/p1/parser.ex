@@ -223,8 +223,8 @@ defmodule P1.Parser do
 
   defp timestamp(text) do
     dst = case String.last(text) do
-      "S" -> "Summertime"
-      "W" -> "Wintertime"
+      "S" -> "+01:00"
+      "W" -> "+02:00"
     end
     [date | time] = text
       |> String.slice(0 .. String.length(text) - 1)
@@ -232,18 +232,18 @@ defmodule P1.Parser do
       |> Enum.chunk_every(2)
       |> Enum.map(&Enum.join/1)
       |> Enum.chunk_every(3)
-    "20" <> Enum.join(date, "-") <> " " <> Enum.join(hd(time), ":") <> " " <> dst
+    "20" <> Enum.join(date, "-") <> "T" <> Enum.join(hd(time), ":") <> dst
   end
 
-  def parens(previous, parser) do 
+  defp parens(previous, parser) do 
     previous |> between(ignore(char("(")), parser, ignore(char(")")))
   end
 
-  def unit(parser) do
+  defp unit(parser) do
     pair_both(parser, pair_right(ignore(char("*")), word()))    
   end
 
-  def unit(parser, unit) do
+  defp unit(parser, unit) do
     pair_both(parser, pair_right(ignore(char("*")), unit))
   end
 

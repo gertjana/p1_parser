@@ -50,7 +50,7 @@ defmodule P1.Telegram do
     ## Example
     ```
     iex> P1.parse!("0-0:1.0.0(101209113020W)") |> P1.to_struct
-    %P1.Telegram.Timestamp{timestamp: "2010-12-09 11:30:20 Wintertime"}
+    %P1.Telegram.Timestamp{timestamp: "2010-12-09T11:30:20+02:00"}
     ```
     """
     defstruct timestamp: ""
@@ -127,12 +127,12 @@ defmodule P1.Telegram do
     events: [
       %P1.Telegram.LongFailure{
         duration: 240,
-        timestamp: "2010-12-08 15:24:15 Wintertime",
+        timestamp: "2010-12-08T15:24:15+02:00",
         unit: "s"
       },
       %P1.Telegram.LongFailure{
         duration: 301,
-        timestamp: "2010-12-08 15:10:04 Wintertime",
+        timestamp: "2010-12-08T15:10:04+02:00",
         unit: "s"
       }
     ]
@@ -227,7 +227,7 @@ defmodule P1.Telegram do
     ## Example
     ```
     iex> P1.parse!("0-1:24.2.1(101209112500W)(12785.123*m3)") |> P1.to_struct
-    %P1.Telegram.MbusDeviceMeasurement{channel: 1, timestamp: "2010-12-09 11:25:00 Wintertime", unit: "m3", value: 12785.123}
+    %P1.Telegram.MbusDeviceMeasurement{channel: 1, timestamp: "2010-12-09T11:25:00+02:00", unit: "m3", value: 12785.123}
     ```
     """
     defstruct channel: 0, timestamp: "", value: 0.0, unit: "m3"

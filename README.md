@@ -51,5 +51,5 @@ I used https://www.netbeheernederland.nl/_upload/Files/Slimme_meter_15_a727fce1f
  - ~~return structs~~
  - Parse entire telegram
  - Validate checksum
- - Convert timestamps to proper date/times
+ - ~~Convert timestamps to proper date/times~~
 
