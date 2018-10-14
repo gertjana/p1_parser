@@ -108,7 +108,7 @@ defmodule P1.Parser do
   defp event(previous \\ nil) do
     previous
     |> parens(ts())
-    |> parens(unit(integer())) 
+    |> parens(unit(integer()))
   end
 
   # 0-0:96.7.21(00004)
@@ -136,7 +136,7 @@ defmodule P1.Parser do
   # 1-0:72.32.0(00000)
   defp voltage_sags_parser do
     map(string("1-0:"), fn _ -> :voltage_sags end)
-    |> map(both(digit(), digit(), fn a, b -> Enum.join([a, b]) |> String.to_integer end), &(phase(&1)))
+    |> map(both(digit(), digit(), &(join(&1, &2))), &(phase(&1)))
     |> ignore(string(".32.0"))
     |> parens(integer())
   end
@@ -146,7 +146,7 @@ defmodule P1.Parser do
   # 1-0:72.36.0(00000)
   defp voltage_swells_parser do
     map(string("1-0:"), fn _ -> :voltage_swells end)
-    |> map(both(digit(), digit(), fn a, b -> Enum.join([a, b]) |> String.to_integer end), &(phase(&1)))
+    |> map(both(digit(), digit(), &(join(&1, &2))), &(phase(&1)))
     |> ignore(string(".36.0"))
     |> parens(integer())
   end
@@ -156,7 +156,7 @@ defmodule P1.Parser do
   # 1-0:72.7.0(220.3*V)
   defp voltage_parser do
     map(string("1-0:"), fn _ -> :voltage end)
-    |> map(both(digit(), digit(), fn a, b -> Enum.join([a, b]) |> String.to_integer end), &(phase(&1)))
+    |> map(both(digit(), digit(), &(join(&1, &2))), &(phase(&1)))
     |> ignore(string(".7.0"))
     |> parens(unit(float(), string("V")))
   end
@@ -166,7 +166,7 @@ defmodule P1.Parser do
   # 1-0:71.7.0(003*A)
   defp amperage_parser do
     map(string("1-0:"), fn _ -> :amperage end)
-    |> map(both(digit(), digit(), fn a, b -> Enum.join([a, b]) |> String.to_integer end), &(phase(&1)))
+    |> map(both(digit(), digit(), &(join(&1, &2))), &(phase(&1)))
     |> ignore(string(".7.0"))
     |> parens(unit(integer(), string("A")))
   end
@@ -222,7 +222,8 @@ defmodule P1.Parser do
   end
 
   defp timestamp(text) do
-    dst = case String.last(text) do
+    # as this is only valid in the netherlands, i can use this trick
+    tz_offset = case String.last(text) do
       "S" -> "+01:00"
       "W" -> "+02:00"
     end
@@ -232,20 +233,22 @@ defmodule P1.Parser do
       |> Enum.chunk_every(2)
       |> Enum.map(&Enum.join/1)
       |> Enum.chunk_every(3)
-    "20" <> Enum.join(date, "-") <> "T" <> Enum.join(hd(time), ":") <> dst
+    "20" <> Enum.join(date, "-") <> "T" <> Enum.join(hd(time), ":") <> tz_offset
   end
 
-  defp parens(previous, parser) do 
+  defp parens(previous, parser) do
     previous |> between(ignore(char("(")), parser, ignore(char(")")))
   end
 
   defp unit(parser) do
-    pair_both(parser, pair_right(ignore(char("*")), word()))    
+    pair_both(parser, pair_right(ignore(char("*")), word()))
   end
 
   defp unit(parser, unit) do
     pair_both(parser, pair_right(ignore(char("*")), unit))
   end
+
+  defp join(a, b), do: Enum.join([a, b]) |> String.to_integer
 
   defp phase(x) do
     case x do

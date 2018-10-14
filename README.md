@@ -5,6 +5,8 @@
 
 Parses telegram's as they are output through the P1 serial port of a smartmeter
 
+Note that this only applies to Dutch smartmeters. 
+
 ## Installation
 
 ```elixir

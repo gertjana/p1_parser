@@ -257,7 +257,7 @@ defmodule P1.Telegram do
 
   def to_struct([:long_failures_log, count, events]) do
     %LongFailureLog{count: count, events: Enum.map(events,
-      fn ev -> %LongFailure{timestamp: Enum.at(ev, 0), duration: elem(Enum.at(ev, 1),0), unit: elem(Enum.at(ev, 1),1)} end)}
+      fn ev -> %LongFailure{timestamp: Enum.at(ev, 0), duration: elem(Enum.at(ev, 1), 0), unit: elem(Enum.at(ev, 1), 1)} end)}
   end
 
   def to_struct([:voltage_swells, :l1, count]), do: %VoltageSwells{phase: :l1, count: count}
