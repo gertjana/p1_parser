@@ -51,7 +51,7 @@ I used https://www.netbeheernederland.nl/_upload/Files/Slimme_meter_15_a727fce1f
  - ~~Parse units~~
  - ~~Parse Summer/Winter time information in timestamp~~
  - ~~return structs~~
+ - ~~Convert timestamps to proper date/times~~
  - Parse entire telegram
  - Validate checksum
- - ~~Convert timestamps to proper date/times~~
 

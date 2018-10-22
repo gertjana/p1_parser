@@ -61,7 +61,7 @@ defmodule P1 do
       {:ok, [:current_energy, :consume, 1.193, "kW"]}
 
   """
-  @spec parse(String.t()) :: {:ok, term} | {:error, String.t()}
+  @spec parse(String.t()) :: {:ok, list} | {:error, String.t()}
   defdelegate parse(line), to: Parser, as: :parse
 
   @doc """
@@ -73,7 +73,7 @@ defmodule P1 do
       [:total_energy, :consume, :low, 123_456.789, "kWh"]
 
   """
-  @spec parse!(String.t()) :: term
+  @spec parse!(String.t()) :: list
   defdelegate parse!(line), to: Parser, as: :parse!
 
   @doc """

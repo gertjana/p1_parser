@@ -32,7 +32,7 @@ defmodule P1.Parser do
       equipment_identifier_parser(),
       tariff_indicator_parser(),
       total_energy_parser(),
-      current_energy_parser(),
+      current_power_parser(),
       power_failures_parser(),
       long_power_failures_parser(),
       long_failures_log_parser(),
@@ -97,8 +97,8 @@ defmodule P1.Parser do
 
   # 1-0:1.7.0(01.193*kW)
   # 1-0:2.7.0(00.000*kW)
-  defp current_energy_parser do
-    map(string("1-0:"), fn _ -> :current_energy end)
+  defp current_power_parser do
+    map(string("1-0:"), fn _ -> :current_power end)
     |> map(digit(), &(direction(&1)))
     |> ignore(string(".7."))
     |> ignore(digit())

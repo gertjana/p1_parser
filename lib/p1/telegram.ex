@@ -82,14 +82,14 @@ defmodule P1.Telegram do
     defstruct indicator: nil
   end
 
-  defmodule CurrentEnergy do
+  defmodule CurrentPower do
     @moduledoc """
-    How much energy is consumed or produced right now
+    How much power is consumed or produced right now
 
     ## Example
     ```
     iex> P1.parse!("1-0:1.7.0(01.193*kW)") |> P1.to_struct
-    %P1.Telegram.CurrentEnergy{direction: :consume, unit: "kW", value: 1.193}
+    %P1.Telegram.CurrentPower{direction: :consume, unit: "kW", value: 1.193}
     ```
     """
     defstruct direction: nil, value: 0.0, unit: "kW"
@@ -249,8 +249,8 @@ defmodule P1.Telegram do
 
   def to_struct([:tariff_indicator, indicator]), do: %TariffIndicator{indicator: indicator}
 
-  def to_struct([:current_energy, :consume, {value, unit}]), do: %CurrentEnergy{direction: :consume, value: value, unit: unit}
-  def to_struct([:current_energy, :produce, {value, unit}]), do: %CurrentEnergy{direction: :produce, value: value, unit: unit}
+  def to_struct([:current_power, :consume, {value, unit}]), do: %CurrentPower{direction: :consume, value: value, unit: unit}
+  def to_struct([:current_power, :produce, {value, unit}]), do: %CurrentPower{direction: :produce, value: value, unit: unit}
 
   def to_struct([:power_failures, count]), do: %PowerFailure{type: :short, count: count}
   def to_struct([:long_power_failures, count]), do: %PowerFailure{type: :long, count: count}
