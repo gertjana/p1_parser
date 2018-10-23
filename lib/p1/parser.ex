@@ -251,7 +251,7 @@ defmodule P1.Parser do
     end
     [date | time] = text |> String.slice(0 .. String.length(text) - 1) |> String.codepoints
     |> Enum.chunk_every(2) |> Enum.map(&Enum.join/1) |> Enum.chunk_every(3)
-    "20" <> Enum.join(date, "-") <> "T" <> Enum.join(hd(time), ":") <> tz_offset
+    "20#{Enum.join(date, "-")}T#{Enum.join(hd(time), ":")}#{tz_offset}"
   end
 
   defp hex, do: word_of(~r/[0-9a-f]+/i)
