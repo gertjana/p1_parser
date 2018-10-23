@@ -32,7 +32,7 @@ defmodule P1.Parser do
       equipment_identifier_parser(),
       tariff_indicator_parser(),
       total_energy_parser(),
-      current_power_parser(),
+      active_power_parser(),
       power_failures_parser(),
       long_power_failures_parser(),
       long_failures_log_parser(),
@@ -40,8 +40,9 @@ defmodule P1.Parser do
       voltage_sags_parser(),
       voltage_parser(),
       amperage_parser(),
-      active_power_parser(),
+      active_power_phase_parser(),
       message_parser(),
+      message_code_parser(),
       mbus_device_type_parser(),
       mbus_equipment_identifier_parser(),
       mbus_device_measurement_parser()
@@ -97,8 +98,8 @@ defmodule P1.Parser do
 
   # 1-0:1.7.0(01.193*kW)
   # 1-0:2.7.0(00.000*kW)
-  defp current_power_parser do
-    map(string("1-0:"), fn _ -> :current_power end)
+  defp active_power_parser do
+    map(string("1-0:"), fn _ -> :active_power end)
     |> map(digit(), &(direction(&1)))
     |> ignore(string(".7."))
     |> ignore(digit())
@@ -177,7 +178,7 @@ defmodule P1.Parser do
   # 1-0:22.7.0(04.444*kW)
   # 1-0:42.7.0(05.555*kW)
   # 1-0:62.7.0(06.666*kW)
-  defp active_power_parser do
+  defp active_power_phase_parser do
     map(string("1-0:"), fn _ -> :active_power end)
     |> map(digit(), &(active_power_phase(&1)))
     |> map(digit(), &(direction(&1)))
@@ -187,7 +188,12 @@ defmodule P1.Parser do
 
   defp message_parser do
     map(string("0:96.13.0"), fn _ -> :text_message end)
-    |>parens(map(word_of(~r/[0-9a-f]+/i), &(Hexate.decode(&1))))
+    |> parens(map(word_of(~r/[0-9a-f]+/i), &(Hexate.decode(&1))))
+  end
+
+  defp message_code_parser do
+    map(string("0:96.13.1"), fn _ -> :message_code end)
+    |> parens(integer())
   end
 
   # 0-1:24.1.0(003)

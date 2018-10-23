@@ -7,7 +7,7 @@ defmodule P1ParserTest do
   doctest P1.Telegram.EquipmentIdentifier
   doctest P1.Telegram.TotalEnergy
   doctest P1.Telegram.TariffIndicator
-  doctest P1.Telegram.CurrentPower
+  doctest P1.Telegram.ActivePower
   doctest P1.Telegram.PowerFailure
   doctest P1.Telegram.LongFailureLog
   doctest P1.Telegram.VoltageSwells
@@ -15,6 +15,7 @@ defmodule P1ParserTest do
   doctest P1.Telegram.Voltage
   doctest P1.Telegram.Amperage
   doctest P1.Telegram.TextMessage
+  doctest P1.Telegram.MessageCode
   doctest P1.Telegram.MbusDeviceType
   doctest P1.Telegram.MbusDeviceMeasurement
 
@@ -71,8 +72,8 @@ defmodule P1ParserTest do
     assert results |> Enum.at(6)  == {:ok, [:total_energy, :produce, :low, {123_456.789, "kWh"}]}
     assert results |> Enum.at(7)  == {:ok, [:total_energy, :produce, :normal, {123_456.789, "kWh"}]}
     assert results |> Enum.at(8)  == {:ok, [:tariff_indicator, :normal]}
-    assert results |> Enum.at(9)  == {:ok, [:current_power, :consume, {1.193, "kW"}]}
-    assert results |> Enum.at(10) == {:ok, [:current_power, :produce, {0.0, "kW"}]}
+    assert results |> Enum.at(9)  == {:ok, [:active_power, :consume, {1.193, "kW"}]}
+    assert results |> Enum.at(10) == {:ok, [:active_power, :produce, {0.0, "kW"}]}
     assert results |> Enum.at(11) == {:ok, [:power_failures, 4]}
     assert results |> Enum.at(12) == {:ok, [:long_power_failures, 2]}
     assert results |> Enum.at(13) == {:ok, [:long_failures_log, 2, [["2010-12-08T15:24:15+02:00", {240, "s"}], ["2010-12-08T15:10:04+02:00", {301, "s"}]]]}

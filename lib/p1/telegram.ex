@@ -82,17 +82,20 @@ defmodule P1.Telegram do
     defstruct indicator: nil
   end
 
-  defmodule CurrentPower do
+  defmodule ActivePower do
     @moduledoc """
     How much power is consumed or produced right now
 
     ## Example
     ```
     iex> P1.parse!("1-0:1.7.0(01.193*kW)") |> P1.to_struct
-    %P1.Telegram.CurrentPower{direction: :consume, unit: "kW", value: 1.193}
+    %P1.Telegram.ActivePower{direction: :consume, phase: :all, unit: "kW", value: 1.193}
+
+    iex> P1.parse!("1-0:41.7.0(01.111*kW)") |> P1.to_struct
+    %P1.Telegram.ActivePower{direction: :consume, phase: :l2, unit: "kW", value: 1.111}
     ```
     """
-    defstruct direction: nil, value: 0.0, unit: "kW"
+    defstruct direction: nil, phase: nil, value: 0.0, unit: "kW"
   end
 
   defmodule PowerFailure do
@@ -207,6 +210,16 @@ defmodule P1.Telegram do
     defstruct text: ""
   end
 
+  defmodule MessageCode do
+    @moduledoc """
+    A 8 digit numeric code
+
+    iex> P1.parse!("0:96.13.1(12345678)") |> P1.to_struct
+    %P1.Telegram.MessageCode{code: 12345678}
+    """
+    defstruct code: 0
+  end
+
   defmodule MbusDeviceType do
     @moduledoc """
     Mbus device type
@@ -249,8 +262,14 @@ defmodule P1.Telegram do
 
   def to_struct([:tariff_indicator, indicator]), do: %TariffIndicator{indicator: indicator}
 
-  def to_struct([:current_power, :consume, {value, unit}]), do: %CurrentPower{direction: :consume, value: value, unit: unit}
-  def to_struct([:current_power, :produce, {value, unit}]), do: %CurrentPower{direction: :produce, value: value, unit: unit}
+  def to_struct([:active_power, :consume, {value, unit}]), do: %ActivePower{direction: :consume, phase: :all, value: value, unit: unit}
+  def to_struct([:active_power, :produce, {value, unit}]), do: %ActivePower{direction: :produce, phase: :all, value: value, unit: unit}
+  def to_struct([:active_power, :l1, :consume, {value, unit}]), do: %ActivePower{direction: :consume, phase: :l1, value: value, unit: unit}
+  def to_struct([:active_power, :l1, :produce, {value, unit}]), do: %ActivePower{direction: :produce, phase: :l1, value: value, unit: unit}
+  def to_struct([:active_power, :l2, :consume, {value, unit}]), do: %ActivePower{direction: :consume, phase: :l2, value: value, unit: unit}
+  def to_struct([:active_power, :l2, :produce, {value, unit}]), do: %ActivePower{direction: :produce, phase: :l2, value: value, unit: unit}
+  def to_struct([:active_power, :l3, :consume, {value, unit}]), do: %ActivePower{direction: :consume, phase: :l3, value: value, unit: unit}
+  def to_struct([:active_power, :l4, :produce, {value, unit}]), do: %ActivePower{direction: :produce, phase: :l3, value: value, unit: unit}
 
   def to_struct([:power_failures, count]), do: %PowerFailure{type: :short, count: count}
   def to_struct([:long_power_failures, count]), do: %PowerFailure{type: :long, count: count}
@@ -277,6 +296,8 @@ defmodule P1.Telegram do
   def to_struct([:amperage, :l3, {value, unit}]), do: %Amperage{phase: :l3, value: value, unit: unit}
 
   def to_struct([:text_message, text]), do: %TextMessage{text: text}
+
+  def to_struct([:message_code, code]), do: %MessageCode{code: code}
 
   def to_struct([:mbus_device_type, channel, type]), do: %MbusDeviceType{channel: channel, type: type}
 
