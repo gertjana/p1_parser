@@ -10,17 +10,21 @@ defmodule P1.Parser do
 
   @doc false
   def parse(line) do
-    case Combine.parse(line, parser()) do
-      {:error, reason} -> {:error, reason}
-      result           -> {:ok, result}
+    if (String.trim(line) == "") do
+      {:ok, []}
+    else
+      case Combine.parse(line, parser()) do
+        {:error, reason} -> {:error, reason}
+        result           -> {:ok, result}
+      end
     end
   end
 
   @doc false
   def parse!(line) do
-    case Combine.parse(line, parser()) do
+    case parse(line) do
       {:error, reason} -> raise reason
-      result           -> result
+      {:ok, result}    -> result
     end
   end
 
@@ -45,7 +49,8 @@ defmodule P1.Parser do
       message_code_parser(),
       mbus_device_type_parser(),
       mbus_equipment_identifier_parser(),
-      mbus_device_measurement_parser()
+      mbus_device_measurement_parser(),
+      checksum_parser()
     ])
   end
 
@@ -204,7 +209,7 @@ defmodule P1.Parser do
     |> parens(integer())
   end
 
-  # 0-1:96.1.0(3232323241424344313233343536373839)  
+  # 0-1:96.1.0(3232323241424344313233343536373839)
   defp mbus_equipment_identifier_parser do
     map(string("0-"), fn _ -> :mbus_equipment_identifier end)
     |> digit()
@@ -221,6 +226,11 @@ defmodule P1.Parser do
     |> parens(unit(float()))
   end
 
+  # !DEB0
+  defp checksum_parser do
+    map(char("!"), fn _ -> :checksum end)
+    |> hex(4)
+  end
   # Helper functions
 
   defp ts(previous \\ nil) do
@@ -240,6 +250,14 @@ defmodule P1.Parser do
       |> Enum.map(&Enum.join/1)
       |> Enum.chunk_every(3)
     "20" <> Enum.join(date, "-") <> "T" <> Enum.join(hd(time), ":") <> tz_offset
+  end
+
+  defp hex(previous) do
+    previous |> word_of(~r/[0-9a-f]+/i)
+  end
+
+  defp hex(previous, size) do
+    previous |> word_of(~r/[0-9a-f]{#{size}}/i)
   end
 
   defp parens(previous, parser) do

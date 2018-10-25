@@ -248,6 +248,19 @@ defmodule P1.Telegram do
     defstruct channel: 0, timestamp: "", value: 0.0, unit: "m3"
   end
 
+  defmodule Checksum do
+    @moduledoc """
+    Checksum for the Telegram
+
+    ## Example
+    ```
+    iex> P1.parse!("!BED0") |> P1.to_struct
+    %P1.Telegram.Checksum{code: "BED0"}
+    ```
+    """
+    defstruct code: ""
+  end
+
   @doc false
   def to_struct([:header, manufacturer, model]), do: %Header{manufacturer: manufacturer, model: model}
 
@@ -306,4 +319,8 @@ defmodule P1.Telegram do
   def to_struct([:mbus_equipment_identifier, channel, identifier]), do: %EquipmentIdentifier{channel: channel, identifier: identifier}
 
   def to_struct([:mbus_device_measurement, channel, timestamp, {value, unit}]), do: %MbusDeviceMeasurement{channel: channel, timestamp: timestamp, value: value, unit: unit}
+
+  def to_struct([:checksum, code]), do: %Checksum{code: code}
+
+  def to_struct([]), do: nil
 end

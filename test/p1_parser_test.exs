@@ -18,6 +18,7 @@ defmodule P1ParserTest do
   doctest P1.Telegram.MessageCode
   doctest P1.Telegram.MbusDeviceType
   doctest P1.Telegram.MbusDeviceMeasurement
+  doctest P1.Telegram.Checksum
 
   test "send lines" do
     lines = """
