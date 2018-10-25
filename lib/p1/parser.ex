@@ -243,12 +243,8 @@ defmodule P1.Parser do
       "S" -> "+01:00"
       "W" -> "+02:00"
     end
-    [date | time] = text
-      |> String.slice(0 .. String.length(text) - 1)
-      |> String.codepoints
-      |> Enum.chunk_every(2)
-      |> Enum.map(&Enum.join/1)
-      |> Enum.chunk_every(3)
+    [date | time] = text |> String.slice(0 .. String.length(text) - 1) |> String.codepoints
+    |> Enum.chunk_every(2) |> Enum.map(&Enum.join/1) |> Enum.chunk_every(3)
     "20" <> Enum.join(date, "-") <> "T" <> Enum.join(hd(time), ":") <> tz_offset
   end
 
