@@ -187,13 +187,13 @@ defmodule P1.Parser do
   end
 
   defp message_parser do
-    map(string("0:96.13.0"), fn _ -> :text_message end)
-    |> parens(map(word_of(~r/[0-9a-f]+/i), &(Hexate.decode(&1))))
+    map(string("0-0:96.13.0"), fn _ -> :text_message end)
+    |> parens(either(map(word_of(~r/[0-9a-f]+/i), &(Hexate.decode(&1))), string("")))
   end
 
   defp message_code_parser do
-    map(string("0:96.13.1"), fn _ -> :message_code end)
-    |> parens(integer())
+    map(string("0-0:96.13.1"), fn _ -> :message_code end)
+    |> parens(either(map(word_of(~r/[0-9a-f]{16}/i), &(Hexate.decode(&1))), string("")))
   end
 
   # 0-1:24.1.0(003)
@@ -204,7 +204,7 @@ defmodule P1.Parser do
     |> parens(integer())
   end
 
-  # 0-1:96.1.0(3232323241424344313233343536373839)
+  # 0-1:96.1.0(3232323241424344313233343536373839)  
   defp mbus_equipment_identifier_parser do
     map(string("0-"), fn _ -> :mbus_equipment_identifier end)
     |> digit()

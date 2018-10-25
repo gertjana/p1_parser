@@ -203,7 +203,7 @@ defmodule P1.Telegram do
 
     ## Example
     ```
-    iex> P1.parse!("0:96.13.0(416C6C20796F75722062617365206172652062656C6F6E6720746F207573)") |> P1.to_struct
+    iex> P1.parse!("0-0:96.13.0(416C6C20796F75722062617365206172652062656C6F6E6720746F207573)") |> P1.to_struct
     %P1.Telegram.TextMessage{text: "All your base are belong to us"}
     ```
     """
@@ -214,8 +214,10 @@ defmodule P1.Telegram do
     @moduledoc """
     A 8 digit numeric code
 
-    iex> P1.parse!("0:96.13.1(12345678)") |> P1.to_struct
-    %P1.Telegram.MessageCode{code: 12345678}
+    ```
+    iex(1)> P1.parse("0-0:96.13.1(3031203631203831)")
+    {:ok, [:message_code, "01 61 81"]}
+    ```
     """
     defstruct code: 0
   end
