@@ -231,6 +231,7 @@ defmodule P1.Parser do
     map(char("!"), fn _ -> :checksum end)
     |> hex(4)
   end
+
   # Helper functions
 
   defp ts(previous \\ nil) do

@@ -1,7 +1,7 @@
 defmodule P1ParserTest do
   use ExUnit.Case
 
-  doctest P1.Parser
+  doctest P1
   doctest P1.Telegram.Header
   doctest P1.Telegram.Version
   doctest P1.Telegram.EquipmentIdentifier

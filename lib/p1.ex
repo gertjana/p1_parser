@@ -58,7 +58,7 @@ defmodule P1 do
   ## Example
 
       iex> P1.parse("1-0:1.7.0(01.193*kW)")
-      {:ok, [:current_energy, :consume, 1.193, "kW"]}
+      {:ok, [:active_power, :consume, {1.193, "kW"}]}
 
   """
   @spec parse(String.t()) :: {:ok, list} | {:error, String.t()}
@@ -70,7 +70,7 @@ defmodule P1 do
   ## Example
 
       iex> P1.parse!("1-0:1.8.1(123456.789*kWh)")
-      [:total_energy, :consume, :low, 123_456.789, "kWh"]
+      [:total_energy, :consume, :low, {123_456.789, "kWh"}]
 
   """
   @spec parse!(String.t()) :: list
@@ -82,7 +82,7 @@ defmodule P1 do
   ## Example
 
         iex>P1.to_struct([:version, "50"])
-        %P1.Telegram.Version(version: "50")
+        %P1.Telegram.Version{version: "50"}
 
   """
   @spec to_struct(list) :: struct
