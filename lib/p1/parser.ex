@@ -74,7 +74,7 @@ defmodule P1.Parser do
     map(string("0-"), fn _ -> :equipment_identifier end)
     |> digit()
     |> ignore(string(":96.1.1"))
-    |> parens(word_of(~r/[0-9a-f]+/i))
+    |> parens(hex())
   end
 
   # 0-0:1.0.0(101209113020W)
@@ -193,12 +193,12 @@ defmodule P1.Parser do
 
   defp message_parser do
     map(string("0-0:96.13.0"), fn _ -> :text_message end)
-    |> parens(either(map(word_of(~r/[0-9a-f]+/i), &(Hexate.decode(&1))), string("")))
+    |> parens(either(map(hex(), &(Hexate.decode(&1))), string("")))
   end
 
   defp message_code_parser do
     map(string("0-0:96.13.1"), fn _ -> :message_code end)
-    |> parens(either(map(word_of(~r/[0-9a-f]{16}/i), &(Hexate.decode(&1))), string("")))
+    |> parens(either(map(hex(16), &(Hexate.decode(&1))), string("")))
   end
 
   # 0-1:24.1.0(003)
@@ -214,7 +214,7 @@ defmodule P1.Parser do
     map(string("0-"), fn _ -> :mbus_equipment_identifier end)
     |> digit()
     |> ignore(string(":96.1.0"))
-    |> parens(word_of(~r/[0-9a-f]+/i))
+    |> parens(hex())
   end
 
   # 0-1:24.2.1(101209112500W)(12785.123*m3)
@@ -248,25 +248,15 @@ defmodule P1.Parser do
     "20" <> Enum.join(date, "-") <> "T" <> Enum.join(hd(time), ":") <> tz_offset
   end
 
-  defp hex(previous) do
-    previous |> word_of(~r/[0-9a-f]+/i)
-  end
+  defp hex, do: word_of(~r/[0-9a-f]+/i)
+  defp hex(size) when is_integer(size), do: word_of(~r/[0-9a-f]{#{size}}/i)
+  defp hex(previous), do: previous |> word_of(~r/[0-9a-f]+/i)
+  defp hex(previous, size), do: previous |> word_of(~r/[0-9a-f]{#{size}}/i)
 
-  defp hex(previous, size) do
-    previous |> word_of(~r/[0-9a-f]{#{size}}/i)
-  end
+  defp parens(previous, parser), do: previous |> between(ignore(char("(")), parser, ignore(char(")")))
 
-  defp parens(previous, parser) do
-    previous |> between(ignore(char("(")), parser, ignore(char(")")))
-  end
-
-  defp unit(parser) do
-    pair_both(parser, pair_right(ignore(char("*")), word()))
-  end
-
-  defp unit(parser, unit) do
-    pair_both(parser, pair_right(ignore(char("*")), unit))
-  end
+  defp unit(parser), do: pair_both(parser, pair_right(ignore(char("*")), word()))
+  defp unit(parser, unit), do: pair_both(parser, pair_right(ignore(char("*")), unit))
 
   defp join(a, b), do: Enum.join([a, b]) |> String.to_integer
 
