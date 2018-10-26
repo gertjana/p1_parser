@@ -4,6 +4,11 @@ defmodule P1.Parser do
   import Combine.Parsers.Text
   @moduledoc """
     Understands the P1 format of Smartmeters and translates them to elixir types
+
+    As the specification says that all lines wih obis codes are optional and the order in which they appear is free, 
+    this parser works with the choice parser from the combine library
+    this means all parsers that can parse a line with an obis code will be consulted
+    and hopefully only one will return a valid result
   """
 
   # credo:disable-for-this-file Credo.Check.Refactor.PipeChainStart
