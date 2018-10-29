@@ -82,10 +82,22 @@ defmodule P1 do
   ## Example
 
         iex>P1.to_struct([:version, "50"])
+        {:ok, %P1.Telegram.Version{version: "50"}}
+
+  """
+  @spec to_struct(list) :: {:ok, struct} | {:error, String.t()}
+  defdelegate to_struct(obj), to: Telegram, as: :to_struct
+
+  @doc """
+  Converts parsed line to a struct
+
+  ## Example
+
+        iex>P1.to_struct!([:version, "50"])
         %P1.Telegram.Version{version: "50"}
 
   """
-  @spec to_struct(list) :: struct
-  defdelegate to_struct(obj), to: Telegram, as: :to_struct
+  @spec to_struct!(list) :: struct
+  defdelegate to_struct!(obj), to: Telegram, as: :to_struct!
 
 end
