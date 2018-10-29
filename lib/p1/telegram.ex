@@ -330,7 +330,7 @@ defmodule P1.Telegram do
 
   def to_struct([:checksum, code]), do: {:ok, %Checksum{code: code}}
 
-  def to_struct([]), do: nil
+  def to_struct([]), do: {:ok, nil}
 
   def to_struct(unknown), do: {:error, "No struct for #{inspect(unknown)}"}
 end
