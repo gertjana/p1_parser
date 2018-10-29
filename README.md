@@ -12,7 +12,7 @@ Note that this only applies to Dutch smartmeters.
 ```elixir
 def deps do
   [
-    {:p1_parser, "~> 0.1.7"}
+    {:p1_parser, "~> 0.1.9"}
   ]
 end
 ```
