@@ -246,8 +246,8 @@ defmodule P1.Parser do
   defp timestamp(text) do
     # as this is only valid in the netherlands, i can use this trick
     tz_offset = case String.last(text) do
-      "S" -> "+01:00"
-      "W" -> "+02:00"
+      "S" -> "+02:00"
+      "W" -> "+01:00"
     end
     [date | time] = text |> String.slice(0 .. String.length(text) - 1) |> String.codepoints
     |> Enum.chunk_every(2) |> Enum.map(&Enum.join/1) |> Enum.chunk_every(3)
