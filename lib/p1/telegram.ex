@@ -292,7 +292,7 @@ defmodule P1.Telegram do
   def to_struct([:active_power, :l2, :consume, {value, unit}]), do: {:ok, %ActivePower{direction: :consume, phase: :l2, value: value, unit: unit}}
   def to_struct([:active_power, :l2, :produce, {value, unit}]), do: {:ok, %ActivePower{direction: :produce, phase: :l2, value: value, unit: unit}}
   def to_struct([:active_power, :l3, :consume, {value, unit}]), do: {:ok, %ActivePower{direction: :consume, phase: :l3, value: value, unit: unit}}
-  def to_struct([:active_power, :l4, :produce, {value, unit}]), do: {:ok, %ActivePower{direction: :produce, phase: :l3, value: value, unit: unit}}
+  def to_struct([:active_power, :l3, :produce, {value, unit}]), do: {:ok, %ActivePower{direction: :produce, phase: :l3, value: value, unit: unit}}
 
   def to_struct([:power_failures, count]), do: {:ok, %PowerFailure{type: :short, count: count}}
   def to_struct([:long_power_failures, count]), do: {:ok, %PowerFailure{type: :long, count: count}}
