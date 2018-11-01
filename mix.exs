@@ -5,7 +5,7 @@ defmodule P1Parser.Mixfile do
     [
       app: :p1_parser,
       description: "Parsers P1 output of a Smartmeter",
-      version: "0.1.9",
+      version: "0.1.10",
       elixir: "~> 1.5",
       start_permanent: Mix.env == :prod,
       deps: deps(),
