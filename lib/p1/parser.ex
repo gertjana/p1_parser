@@ -2,6 +2,7 @@ defmodule P1.Parser do
   use Combine
   import Combine.Parsers.Base
   import Combine.Parsers.Text
+
   @moduledoc """
     Understands the P1 format of Smartmeters and translates them to elixir types
 
@@ -18,7 +19,7 @@ defmodule P1.Parser do
     if (String.trim(line) == "") do
       {:ok, []}
     else
-      case Combine.parse(line, parser()) do
+      case Combine.parse(line, line_parser(nil)) do
         {:error, reason} -> {:error, reason}
         result           -> {:ok, result}
       end
@@ -33,217 +34,123 @@ defmodule P1.Parser do
     end
   end
 
-  defp parser do
-    choice(nil, [
-      header_parser(),
-      version_parser(),
+  @doc false
+  def parse_telegram(telegram) do
+    case Combine.parse(telegram, telegram_parser(nil)) do
+      {:error, reason} -> {:error, reason}
+      result           -> {:ok, result}
+    end
+  end
+
+  @doc false
+  def parse_telegram!(telegram) do
+    case parse_telegram(telegram) do
+      {:error, reason} -> raise reason
+      {:ok, result} -> result
+    end
+  end
+
+
+#  CRC is a CRC16 value calculated over the preceding characters in the data message (from
+#  “/” to “!” using the polynomial: x16+x15+x2+1). CRC16 uses no XOR in, no XOR out and is
+#  computed with least significant bit first. The value is represented as 4 hexadecimal
+#  characters (MSB first)
+
+  @doc false
+  def calculate_checksum(bytes) do
+    IO.puts("#{String.first(bytes)}...#{String.last(bytes)}")
+    algo = %{
+      width: 16,
+      poly: 0xA001,
+      init: 0x00,
+      refin: false,
+      refout: false,
+      xorout: 0x00
+    }
+    CRC.crc(algo, bytes) |> Hexate.encode
+  end
+
+
+
+  defp telegram_parser(previous \\ nil) do
+    previous 
+    |> pipe([word_of(~r/[^!]*/), char("!")], &Enum.join(&1))
+    |> hex(4)
+  end
+
+  defp line_parser(previous \\ nil) do
+    previous
+    |> choice([header_parser(), obis_parser(), checksum_parser()])
+  end
+
+  defp obis_parser(previous \\ nil) do
+    previous
+    |> medium_channel_parser()
+    |> ignore(char(":"))
+    |> measurement_type_parser()
+    |> values_parser()
+    |> ignore(option(newline()))
+  end
+
+  defp medium_channel_parser(previous \\ nil) do
+    previous
+    |> pipe([integer(), char("-"), integer()], fn [t, _, c] -> P1.Channel.construct(t, c) end)
+  end
+
+  defp measurement_type_parser(previous \\ nil) do
+    previous
+    |> pipe([integer(), ignore(char(".")), integer(), ignore(char(".")), integer()], &to_tags(&1))
+  end
+
+  defp values_parser(previous \\ nil) do
+    previous 
+    |> many1(parens(value_parser()))
+  end
+
+  defp value_parser(previous \\ nil) do
+    previous
+    |> choice([
       timestamp_parser(),
-      equipment_identifier_parser(),
-      tariff_indicator_parser(),
-      total_energy_parser(),
-      active_power_parser(),
-      power_failures_parser(),
-      long_power_failures_parser(),
-      long_failures_log_parser(),
-      voltage_swells_parser(),
-      voltage_sags_parser(),
-      voltage_parser(),
-      amperage_parser(),
-      active_power_phase_parser(),
-      message_parser(),
-      message_code_parser(),
-      mbus_device_type_parser(),
-      mbus_equipment_identifier_parser(),
-      mbus_device_measurement_parser(),
-      checksum_parser()
+      integer_with_unit_parser(),
+      float_with_unit_parser(),
+#      integer_parser(),
+      word_of(~r/[\w\*\:\-\.]*/)
     ])
   end
 
+  defp integer_with_unit_parser(previous \\ nil) do
+    previous |> pipe([integer(), char("*"), word_of(~r/s|m3|V|A|kWh|kW/)], fn [v, _, u] -> %P1.Value{value: v, unit: u} end)
+  end
+
+  defp float_with_unit_parser(previous \\ nil) do
+    previous |> pipe([float(), char("*"), word_of(~r/s|m3|V|A|kWh|kW/)], fn [v, _, u] -> %P1.Value{value: v, unit: u} end)
+  end
+
+  defp integer_parser(previous \\ nil) do
+    previous |> map(integer() |> followed_by(char(")")), fn i -> %P1.Value{value: i, unit: ""} end)
+  end
+
+  defp unit_parser(previous \\ nil) do
+    previous |> choice([string("s"), string("V"),string("A"),string("m3"),string("kW"),string("kWh")])
+  end
+
   # /ISk5MT382-1000
-  defp header_parser do
-    map(char("/"), fn _ -> :header end)
-    |> word_of(~r/\w{3}/)
-    |> ignore(char("5"))
-    |> word_of(~r/.+/)
-  end
-
-  # 1-3:0.2.8(50)
-  defp version_parser do
-    map(string("1-3:0.2.8"), fn _ -> :version end)
-    |> parens(word())
-  end
-
-  # 0-0:96.1.1(4B384547303034303436333935353037)
-  # 0-1:96.1.0(3232323241424344313233343536373839)
-  defp equipment_identifier_parser do
-    map(string("0-"), fn _ -> :equipment_identifier end)
-    |> digit()
-    |> ignore(string(":96.1.1"))
-    |> parens(hex())
-  end
-
-  # 0-0:1.0.0(101209113020W)
-  defp timestamp_parser do
-    map(string("0-0:1.0.0"), fn _ -> :timestamp end)
-    |> parens(map(word_of(~r/\d+[SW]/), &(timestamp(&1))))
-  end
-
-  # 1-0:1.8.1(123456.789*kWh)
-  # 1-0:1.8.2(123456.789*kWh)
-  # 1-0:2.8.1(123456.789*kWh)
-  # 1-0:2.8.2(123456.789*kWh)
-  defp total_energy_parser do
-    map(string("1-0:"), fn _ -> :total_energy end)
-    |> map(digit(), &(direction(&1)))
-    |> ignore(string(".8."))
-    |> map(digit(), &(tariff(&1)))
-    |> parens(unit(float()))
-  end
-
-  # 0-0:96.14.0(0002)
-  defp tariff_indicator_parser do
-    map(string("0-0:96.14.0"), fn _ -> :tariff_indicator end)
-    |> parens(map(integer(), &(tariff(&1))))
-  end
-
-  # 1-0:1.7.0(01.193*kW)
-  # 1-0:2.7.0(00.000*kW)
-  defp active_power_parser do
-    map(string("1-0:"), fn _ -> :active_power end)
-    |> map(digit(), &(direction(&1)))
-    |> ignore(string(".7."))
-    |> ignore(digit())
-    |> parens(unit(float()))
-  end
-
-  defp event(previous \\ nil) do
-    previous
-    |> parens(ts())
-    |> parens(unit(integer()))
-  end
-
-  # 0-0:96.7.21(00004)
-  defp power_failures_parser do
-    map(string("0-0:96.7.21"), fn _ -> :power_failures end)
-    |> parens(integer())
-  end
-
-  # 0-0:96.7.9(00002)
-  defp long_power_failures_parser do
-    map(string("0-0:96.7.9"), fn _ -> :long_power_failures end)
-    |> parens(integer())
-  end
-
-  # 1-0:99.97.0(2)(0-0:96.7.19)(101208152415W)(0000000240*s)(101208151004W)(0000000301*s)
-  defp long_failures_log_parser do
-    map(string("1-0:99.97.0"), fn _ -> :long_failures_log end)
-    |> parens(integer())
-    |> ignore(string("(0-0:96.7.19)"))
-    |> many(sequence([event()]))
-  end
-
-  # 1-0:32.32.0(00002)
-  # 1-0:52.32.0(00001)
-  # 1-0:72.32.0(00000)
-  defp voltage_sags_parser do
-    map(string("1-0:"), fn _ -> :voltage_sags end)
-    |> map(both(digit(), digit(), &(join(&1, &2))), &(phase(&1)))
-    |> ignore(string(".32.0"))
-    |> parens(integer())
-  end
-
-  # 1-0:32.36.0(00000)
-  # 1-0:52.36.0(00003)
-  # 1-0:72.36.0(00000)
-  defp voltage_swells_parser do
-    map(string("1-0:"), fn _ -> :voltage_swells end)
-    |> map(both(digit(), digit(), &(join(&1, &2))), &(phase(&1)))
-    |> ignore(string(".36.0"))
-    |> parens(integer())
-  end
-
-  # 1-0:32.7.0(220.1*V)
-  # 1-0:52.7.0(220.2*V)
-  # 1-0:72.7.0(220.3*V)
-  defp voltage_parser do
-    map(string("1-0:"), fn _ -> :voltage end)
-    |> map(both(digit(), digit(), &(join(&1, &2))), &(phase(&1)))
-    |> ignore(string(".7.0"))
-    |> parens(unit(float(), string("V")))
-  end
-
-  # 1-0:31.7.0(001*A)
-  # 1-0:51.7.0(002*A)
-  # 1-0:71.7.0(003*A)
-  defp amperage_parser do
-    map(string("1-0:"), fn _ -> :amperage end)
-    |> map(both(digit(), digit(), &(join(&1, &2))), &(phase(&1)))
-    |> ignore(string(".7.0"))
-    |> parens(unit(integer(), string("A")))
-  end
-
-  # 1-0:21.7.0(01.111*kW)
-  # 1-0:41.7.0(02.222*kW)
-  # 1-0:61.7.0(03.333*kW)
-  # 1-0:22.7.0(04.444*kW)
-  # 1-0:42.7.0(05.555*kW)
-  # 1-0:62.7.0(06.666*kW)
-  defp active_power_phase_parser do
-    map(string("1-0:"), fn _ -> :active_power end)
-    |> map(digit(), &(active_power_phase(&1)))
-    |> map(digit(), &(direction(&1)))
-    |> ignore(string(".7.0"))
-    |> parens(unit(float(), string("kW")))
-  end
-
-  defp message_parser do
-    map(string("0-0:96.13.0"), fn _ -> :text_message end)
-    |> parens(either(map(hex(), &(Hexate.decode(&1))), string("")))
-  end
-
-  defp message_code_parser do
-    map(string("0-0:96.13.1"), fn _ -> :message_code end)
-    |> parens(either(map(hex(16), &(Hexate.decode(&1))), string("")))
-  end
-
-  # 0-1:24.1.0(003)
-  defp mbus_device_type_parser do
-    map(string("0-"), fn _ -> :mbus_device_type end)
-    |> digit()
-    |> ignore(string(":24.1.0"))
-    |> parens(integer())
-  end
-
-  # 0-1:96.1.0(3232323241424344313233343536373839)
-  defp mbus_equipment_identifier_parser do
-    map(string("0-"), fn _ -> :mbus_equipment_identifier end)
-    |> digit()
-    |> ignore(string(":96.1.0"))
-    |> parens(hex())
-  end
-
-  # 0-1:24.2.1(101209112500W)(12785.123*m3)
-  defp mbus_device_measurement_parser do
-    map(string("0-"), fn _ -> :mbus_device_measurement end)
-    |> digit()
-    |> ignore(string(":24.2.1"))
-    |> parens(ts())
-    |> parens(unit(float()))
+  defp header_parser(previous \\ nil) do
+    previous |> pipe([ignore(char("/")), word_of(~r/\w{3}/), ignore(char("5")), word_of(~r/.+/)], fn [m,n] -> %P1.Header{manufacturer: m, model: n} end)
   end
 
   # !DEB0
-  defp checksum_parser do
-    map(char("!"), fn _ -> :checksum end)
-    |> hex(4)
+  defp checksum_parser(previous \\ nil) do
+    previous |> pipe([char("!"), hex(4)], fn [_, c] -> %P1.Checksum{value: c} end)
   end
 
   # Helper functions
 
-  defp ts(previous \\ nil) do
-    previous |> map(word_of(~r/\d+[SW]/), &(timestamp(&1)))
+  defp timestamp_parser(previous \\ nil) do
+    previous |> map(word_of(~r/\d+[SW]/), &(timestamp_to_utc(&1)))
   end
 
-  defp timestamp(text) do
+  defp timestamp_to_utc(text) do
     # as this is only valid in the netherlands, i can use this trick
     tz_offset = case String.last(text) do
       "S" -> "+02:00"
@@ -254,48 +161,56 @@ defmodule P1.Parser do
     "20#{Enum.join(date, "-")}T#{Enum.join(hd(time), ":")}#{tz_offset}"
   end
 
-  defp hex, do: word_of(~r/[0-9a-f]+/i)
+#  defp hex, do: word_of(~r/[0-9a-f]+/i)
   defp hex(size) when is_integer(size), do: word_of(~r/[0-9a-f]{#{size}}/i)
-  defp hex(previous), do: previous |> word_of(~r/[0-9a-f]+/i)
+#  defp hex(previous), do: previous |> word_of(~r/[0-9a-f]+/i)
   defp hex(previous, size), do: previous |> word_of(~r/[0-9a-f]{#{size}}/i)
 
-  defp parens(previous, parser), do: previous |> between(ignore(char("(")), parser, ignore(char(")")))
+#  defp parens(previous, parser), do: previous |> between(ignore(char("(")), parser, ignore(char(")")))
+  defp parens(parser), do: between(ignore(char("(")), parser, ignore(char(")")))
 
-  defp unit(parser), do: pair_both(parser, pair_right(ignore(char("*")), word()))
-  defp unit(parser, unit), do: pair_both(parser, pair_right(ignore(char("*")), unit))
+#  defp unit(parser), do: pair_both(parser, pair_right(ignore(char("*")), word()))
+#  defp unit(parser, unit), do: pair_both(parser, pair_right(ignore(char("*")), unit))
 
-  defp join(a, b), do: Enum.join([a, b]) |> String.to_integer
-
-  defp phase(x) do
-    case x do
-      l when l in [2, 31, 32] -> :l1
-      l when l in [4, 51, 52] -> :l2
-      l when l in [6, 71, 72] -> :l3
-       _ -> x
+  defp to_tags(code) do
+    tags = case code do
+      [0, 2, 8]   -> [:version]
+      [1, 0, 0]   -> [:timestamp]
+      [1, 8, 1]   -> [:total, :energy, :consume, :low]
+      [1, 8, 2]   -> [:total, :energy, :consume, :normal]
+      [2, 8, 1]   -> [:total, :energy, :produce, :low]
+      [2, 8, 2]   -> [:total, :energy, :produce, :normal]
+      [1, 7, 0]   -> [:active, :power, :consume]
+      [2, 7, 0]   -> [:active, :power, :produce]
+      [96, 1, 1]  -> [:equipment_identifier]
+      [96, 7, 9]  -> [:power_failures, :long]
+      [96, 7, 21] -> [:power_failures, :short]
+      [96, 14, 0] -> [:tariff_indicator]
+      [99, 97, 0] -> [:power_failures, :event_log]
+      [32, 32, 0] -> [:voltage_sags, :l1]
+      [52, 32, 0] -> [:voltage_sags, :l2]
+      [72, 32, 0] -> [:voltage_sags, :l3]
+      [32, 36, 0] -> [:voltage_swells, :l1]
+      [52, 36, 0] -> [:voltage_swells, :l2]
+      [72, 36, 0] -> [:voltage_swells, :l3]
+      [31, 7, 0]  -> [:active, :amperage, :l1]
+      [51, 7, 0]  -> [:active, :amperage, :l2]
+      [71, 7, 0]  -> [:active, :amperage, :l3]
+      [32, 7, 0]  -> [:active, :voltage, :l1]
+      [52, 7, 0]  -> [:active, :voltage, :l2]
+      [72, 7, 0]  -> [:active, :voltage, :l3]
+      [96, 13, 0] -> [:message]
+      [21, 7, 0]  -> [:active, :power, :l1, :plus_p]
+      [41, 7, 0]  -> [:active, :power, :l2, :plus_p]
+      [61, 7, 0]  -> [:active, :power, :l3, :plus_p]
+      [22, 7, 0]  -> [:active, :power, :l1, :min_p]
+      [42, 7, 0]  -> [:active, :power, :l2, :min_p]
+      [62, 7, 0]  -> [:active, :power, :l3, :min_p]
+      [24, 1, 0]  -> [:mbus, :device_type]
+      [96, 1, 0]  -> [:mbus, :equipment_identifier]
+      [24, 2, 1]  -> [:mbus, :measurement]
+      _ -> [:unknown]
     end
-  end
-
-  defp active_power_phase(x) do
-    case x do
-      2 -> :l1
-      4 -> :l2
-      6 -> :l3
-    end
-  end
-
-  defp direction(x) do
-    case x do
-      1 -> :consume
-      2 -> :produce
-      _ -> x
-    end
-  end
-
-  defp tariff(x) do
-    case x do
-      1 -> :low
-      2 -> :normal
-      _ -> x
-    end
+    %P1.Tags{tags: tags}
   end
 end

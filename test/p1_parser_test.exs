@@ -2,23 +2,20 @@ defmodule P1ParserTest do
   use ExUnit.Case
 
   doctest P1
-  doctest P1.Telegram.Header
-  doctest P1.Telegram.Version
-  doctest P1.Telegram.EquipmentIdentifier
-  doctest P1.Telegram.TotalEnergy
-  doctest P1.Telegram.TariffIndicator
-  doctest P1.Telegram.ActivePower
-  doctest P1.Telegram.PowerFailure
-  doctest P1.Telegram.LongFailureLog
-  doctest P1.Telegram.VoltageSwells
-  doctest P1.Telegram.VoltageSags
-  doctest P1.Telegram.Voltage
-  doctest P1.Telegram.Amperage
-  doctest P1.Telegram.TextMessage
-  doctest P1.Telegram.MessageCode
-  doctest P1.Telegram.MbusDeviceType
-  doctest P1.Telegram.MbusDeviceMeasurement
-  doctest P1.Telegram.Checksum
+
+#  test "Send whole telegram" do
+#    Path.expand("./test/examples")
+#    |> File.ls!()
+#    |> Enum.each(fn f ->
+#      to_read = Path.expand("./test/examples/#{f}")
+#        case File.read( to_read) do
+#          {:ok, txt} ->
+#          {:ok, [res, checksum]} = P1.parse_telegram(txt<>"!")
+#            IO.puts("#{checksum} <-> #{P1.checksum(res)}")
+#          x -> flunk(inspect(x))
+#        end
+#    end)
+#  end
 
   test "send lines" do
     lines = """
@@ -64,40 +61,44 @@ defmodule P1ParserTest do
 
     results = lines |> Enum.map(fn line -> P1.parse(line) end)
 
-    assert results |> Enum.at(0)  == {:ok, [:header, "ISk", "\\2MT382-1000"]}
-    assert results |> Enum.at(1)  == {:ok, [:version, "50"]}
-    assert results |> Enum.at(2)  == {:ok, [:timestamp, "2010-12-09T11:30:20+02:00"]}
-    assert results |> Enum.at(3)  == {:ok, [:equipment_identifier, 0, "4B384547303034303436333935353037"]}
-    assert results |> Enum.at(4)  == {:ok, [:total_energy, :consume, :low, {123_456.789, "kWh"}]}
-    assert results |> Enum.at(5)  == {:ok, [:total_energy, :consume, :normal, {123_456.789, "kWh"}]}
-    assert results |> Enum.at(6)  == {:ok, [:total_energy, :produce, :low, {123_456.789, "kWh"}]}
-    assert results |> Enum.at(7)  == {:ok, [:total_energy, :produce, :normal, {123_456.789, "kWh"}]}
-    assert results |> Enum.at(8)  == {:ok, [:tariff_indicator, :normal]}
-    assert results |> Enum.at(9)  == {:ok, [:active_power, :consume, {1.193, "kW"}]}
-    assert results |> Enum.at(10) == {:ok, [:active_power, :produce, {0.0, "kW"}]}
-    assert results |> Enum.at(11) == {:ok, [:power_failures, 4]}
-    assert results |> Enum.at(12) == {:ok, [:long_power_failures, 2]}
-    assert results |> Enum.at(13) == {:ok, [:long_failures_log, 2, [["2010-12-08T15:24:15+02:00", {240, "s"}], ["2010-12-08T15:10:04+02:00", {301, "s"}]]]}
-    assert results |> Enum.at(14) == {:ok, [:voltage_sags, :l1, 2]}
-    assert results |> Enum.at(15) == {:ok, [:voltage_sags, :l2, 1]}
-    assert results |> Enum.at(16) == {:ok, [:voltage_sags, :l3, 0]}
-    assert results |> Enum.at(17) == {:ok, [:voltage_swells, :l1, 0]}
-    assert results |> Enum.at(18) == {:ok, [:voltage_swells, :l2, 3]}
-    assert results |> Enum.at(19) == {:ok, [:voltage_swells, :l3, 0]}
-    assert results |> Enum.at(22) == {:ok, [:voltage, :l1, {220.1, "V"}]}
-    assert results |> Enum.at(23) == {:ok, [:voltage, :l2, {220.2, "V"}]}
-    assert results |> Enum.at(24) == {:ok, [:voltage, :l3, {220.3, "V"}]}
-    assert results |> Enum.at(25) == {:ok, [:amperage, :l1, {1, "A"}]}
-    assert results |> Enum.at(26) == {:ok, [:amperage, :l2, {2, "A"}]}
-    assert results |> Enum.at(27) == {:ok, [:amperage, :l3, {3, "A"}]}
-    assert results |> Enum.at(28) == {:ok, [:active_power, :l1, :consume, {1.111, "kW"}]}
-    assert results |> Enum.at(29) == {:ok, [:active_power, :l2, :consume, {2.222, "kW"}]}
-    assert results |> Enum.at(30) == {:ok, [:active_power, :l3, :consume, {3.333, "kW"}]}
-    assert results |> Enum.at(31) == {:ok, [:active_power, :l1, :produce, {4.444, "kW"}]}
-    assert results |> Enum.at(32) == {:ok, [:active_power, :l2, :produce, {5.555, "kW"}]}
-    assert results |> Enum.at(33) == {:ok, [:active_power, :l3, :produce, {6.666, "kW"}]}
-    assert results |> Enum.at(34) == {:ok, [:mbus_device_type, 1, 3]}
-    assert results |> Enum.at(35) == {:ok, [:mbus_equipment_identifier, 1, "3232323241424344313233343536373839"]}
-    assert results |> Enum.at(36) == {:ok, [:mbus_device_measurement, 1, "2010-12-09T11:25:00+02:00", {12_785.123, "m3"}]}
+    assert results |> Enum.at(0)  == {:ok, [%P1.Header{manufacturer: "ISk", model: "\\2MT382-1000"}]}
+
+    assert results |> Enum.at(1)  == {:ok, [%P1.Channel{channel: 3, medium: :electricity}, %P1.Tags{tags: [:version]}, ["50"]]}
+    assert results |> Enum.at(2)  == {:ok, [%P1.Channel{channel: 0, medium: :abstract},    %P1.Tags{tags: [:timestamp]}, ["2010-12-09T11:30:20+01:00"]]}
+    assert results |> Enum.at(3)  == {:ok, [%P1.Channel{channel: 0, medium: :abstract},    %P1.Tags{tags: [:equipment_identifier]}, ["4B384547303034303436333935353037"]]}
+    assert results |> Enum.at(4)  == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:total, :energy, :consume, :low]}, [%P1.Value{value: 123_456.789, unit: "kWh"}]]}
+    assert results |> Enum.at(5)  == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:total, :energy, :consume, :normal]}, [%P1.Value{value: 123_456.789, unit: "kWh"}]]}
+    assert results |> Enum.at(6)  == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:total, :energy, :produce, :low]}, [%P1.Value{value: 123_456.789, unit: "kWh"}]]}
+    assert results |> Enum.at(7)  == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:total, :energy, :produce, :normal]}, [%P1.Value{value: 123_456.789, unit: "kWh"}]]}
+    assert results |> Enum.at(8)  == {:ok, [%P1.Channel{channel: 0, medium: :abstract},    %P1.Tags{tags: [:tariff_indicator]}, ["0002"]]}
+    assert results |> Enum.at(9)  == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:active, :power, :consume]}, [%P1.Value{value: 1.193, unit: "kW"}]]}
+    assert results |> Enum.at(10) == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:active, :power, :produce]}, [%P1.Value{value: 0.0, unit: "kW"}]]}
+    assert results |> Enum.at(11) == {:ok, [%P1.Channel{channel: 0, medium: :abstract},    %P1.Tags{tags: [:power_failures, :short]}, ["00004"]]}
+    assert results |> Enum.at(12) == {:ok, [%P1.Channel{channel: 0, medium: :abstract},    %P1.Tags{tags: [:power_failures, :long]}, ["00002"]]}
+    assert results |> Enum.at(13) == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:power_failures, :event_log]},
+            ["2", "0-0:96.7.19", "2010-12-08T15:24:15+01:00", %P1.Value{value: 240, unit: "s"}, "2010-12-08T15:10:04+01:00", %P1.Value{value: 301, unit: "s"}]]}
+    assert results |> Enum.at(14) == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:voltage_sags, :l1]}, ["00002"]]}
+    assert results |> Enum.at(15) == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:voltage_sags, :l2]}, ["00001"]]}
+    assert results |> Enum.at(16) == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:voltage_sags, :l3]}, ["00000"]]}
+    assert results |> Enum.at(17) == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:voltage_swells, :l1]}, ["00000"]]}
+    assert results |> Enum.at(18) == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:voltage_swells, :l2]}, ["00003"]]}
+    assert results |> Enum.at(19) == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:voltage_swells, :l3]}, ["00000"]]}
+    assert results |> Enum.at(22) == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:active, :voltage, :l1]}, [%P1.Value{value: 220.1, unit: "V"}]]}
+    assert results |> Enum.at(23) == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:active, :voltage, :l2]}, [%P1.Value{value: 220.2, unit: "V"}]]}
+    assert results |> Enum.at(24) == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:active, :voltage, :l3]}, [%P1.Value{value: 220.3, unit: "V"}]]}
+    assert results |> Enum.at(25) == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:active, :amperage, :l1]}, [%P1.Value{value: 1, unit: "A"}]]}
+    assert results |> Enum.at(26) == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:active, :amperage, :l2]}, [%P1.Value{value: 2, unit: "A"}]]}
+    assert results |> Enum.at(27) == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:active, :amperage, :l3]}, [%P1.Value{value: 3, unit: "A"}]]}
+    assert results |> Enum.at(28) == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:active, :power, :l1, :plus_p]}, [%P1.Value{value: 1.111, unit: "kW"}]]}
+    assert results |> Enum.at(29) == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:active, :power, :l2, :plus_p]}, [%P1.Value{value: 2.222, unit: "kW"}]]}
+    assert results |> Enum.at(30) == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:active, :power, :l3, :plus_p]}, [%P1.Value{value: 3.333, unit: "kW"}]]}
+    assert results |> Enum.at(31) == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:active, :power, :l1, :min_p]}, [%P1.Value{value: 4.444, unit: "kW"}]]}
+    assert results |> Enum.at(32) == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:active, :power, :l2, :min_p]}, [%P1.Value{value: 5.555, unit: "kW"}]]}
+    assert results |> Enum.at(33) == {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:active, :power, :l3, :min_p]}, [%P1.Value{value: 6.666, unit: "kW"}]]}
+    assert results |> Enum.at(34) == {:ok, [%P1.Channel{channel: 1, medium: :abstract},    %P1.Tags{tags: [:mbus, :device_type]}, ["003"]]}
+    assert results |> Enum.at(35) == {:ok, [%P1.Channel{channel: 1, medium: :abstract},    %P1.Tags{tags: [:mbus, :equipment_identifier]}, ["3232323241424344313233343536373839"]]}
+    assert results |> Enum.at(36) == {:ok, [%P1.Channel{channel: 1, medium: :abstract},    %P1.Tags{tags: [:mbus, :measurement]},
+             ["2010-12-09T11:25:00+01:00", %P1.Value{value: 12785.123, unit: "m3"}]]}
+    assert results |> Enum.at(37) == {:ok, [%P1.Checksum{value: "EF2F"}]}
   end
 end

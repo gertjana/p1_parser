@@ -1,6 +1,5 @@
 defmodule P1 do
   alias P1.Parser, as: Parser
-  alias P1.Telegram, as: Telegram
   @moduledoc """
     P1 is a communication standard for Dutch Smartmeters
 
@@ -52,13 +51,134 @@ defmodule P1 do
     ```
   """
 
+  defmodule Channel do
+    @moduledoc """
+      Contains the medium and channel of the data
+
+      The medium cam be `:abstract`, `:electricity`, `:heat`, `:gas`, `:water`, the channel always 0 for the meter itself and higher numbers for modbus connected devices
+
+      to transform the medium from an integer to the atom, one can use the construct method on the struct
+
+      ```
+      iex> P1.Channel.construct(1,0)
+      %P1.Channel{channel: 0, medium: :electricity}
+      ```
+    """
+    defstruct medium: nil, channel: 0
+
+    def construct(medium, channel) do
+      m = case medium do
+            0 -> :abstract
+            1 -> :electricity
+            6 -> :heat
+            7 -> :gas
+            8 -> :water
+          end
+      %Channel{medium: m, channel: channel}
+    end
+  end
+
+  defmodule Value do
+    @moduledoc """
+      A Value with an Unit
+
+      ```
+      iex> P1.parse!("1-0:32.7.0(220.1*V)")
+        [
+        %P1.Channel{channel: 0, medium: :electricity},
+        %P1.Tags{tags: [:active, :voltage, :l1]},
+        [%P1.Value{unit: "V", value: 220.1}]
+        ]
+      ```
+    """
+    defstruct value: 0, unit: ""
+  end
+
+  defmodule Tags do
+    @moduledoc """
+      Contains a list of tags, describing the measurement
+    """
+    defstruct tags: []
+  end
+
+    defmodule ObisCode do
+      @moduledoc """
+
+      Struct that represents a data (OBIS) line in the telegram
+
+      OBiS Codes have the following structure `A-B:C.D.E and one our more values in parentheses (v1) where
+
+      Code|Description
+      ---|---
+      A | specifies the medium 0=abstract, 1=electricity, 6=heat, 7=gas, 8=water
+      B | specifies the channel, 0 is the meter itself, higher numbers are modbus connected devices
+      C | specifies the physical value (current, voltage, energy, level, temperature, ...)
+      D |	specifies the quantity computation result of specific algorythm
+      E | specifies the measurement type defined by groups A to D into individual measurements (e.g. switching ranges)​
+
+      The values consists of parentheses around for instance timestamps, integers, hexadecimal encoded texts and measurements with units (where a * separates value and unit)
+      ```
+      iex> P1.parse!("1-0:2.7.0(01.869*kW)") |> P1.ObisCode.construct
+      %P1.ObisCode{
+      channel: %P1.Channel{channel: 0, medium: :electricity},
+      tags: %P1.Tags{tags: [:active, :power, :produce]},
+      values: [%P1.Value{unit: "kW", value: 1.869}]
+      }
+      ```
+      """
+      defstruct channel: %Channel{}, tags: %Tags{}, values: []
+
+      def construct([channel, tags, values]), do: %ObisCode{channel: channel, tags: tags, values: values}
+    end
+
+  defmodule Header do
+    @moduledoc """
+      contains the header of the telegram
+
+      ```
+      iex(1)> P1.parse("/ISk5MT382-1000")
+      {:ok, [%P1.Header{manufacturer: "ISk", model: "MT382-1000"}]}
+      ```
+    """
+    defstruct manufacturer: "", model: ""
+  end
+
+  defmodule Checksum do
+    @moduledoc """
+    contains the CRC16 Checksum
+
+    It is a CRC16 value calculated over the preceding characters in the data message (from
+    “/” to “!” using the polynomial: x16+x15+x2+1). CRC16 uses no XOR in, no XOR out and is
+    computed with least significant bit first. The value is represented as 4 hexadecimal
+    characters (MSB first)
+
+    ```
+    iex> P1.parse("!B0B0")
+    {:ok, [%P1.Checksum{value: "B0B0"}]}
+    ```
+    """
+    defstruct value: 0x00
+  end
+
+  @doc false
+  @spec checksum(String.t()) :: String.t()
+  defdelegate checksum(bytes), to: Parser, as: :calculate_checksum
+
+  @doc false
+  @spec parse_telegram(String.t()) :: {:ok, list} | {:error, String.t()}
+  defdelegate parse_telegram(telegram), to: Parser, as: :parse_telegram
+
+  @doc false
+  @spec parse_telegram!(String.t()) :: list
+  defdelegate parse_telegram!(telegram), to: Parser, as: :parse_telegram!
+
   @doc """
   Parses a line of text according to the P1 protocol
 
   ## Example
 
       iex> P1.parse("1-0:1.7.0(01.193*kW)")
-      {:ok, [:active_power, :consume, {1.193, "kW"}]}
+      {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:active, :power, :consume]}, [%P1.Value{value: 1.193, unit: "kW"}]]}
 
   """
   @spec parse(String.t()) :: {:ok, list} | {:error, String.t()}
@@ -70,34 +190,10 @@ defmodule P1 do
   ## Example
 
       iex> P1.parse!("1-0:1.8.1(123456.789*kWh)")
-      [:total_energy, :consume, :low, {123_456.789, "kWh"}]
+      [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [:total, :energy, :consume, :low]}, [%P1.Value{value: 123_456.789, unit: "kWh"}]]
 
   """
   @spec parse!(String.t()) :: list
   defdelegate parse!(line), to: Parser, as: :parse!
-
-  @doc """
-  Converts parsed line to a struct
-
-  ## Example
-
-        iex>P1.to_struct([:version, "50"])
-        {:ok, %P1.Telegram.Version{version: "50"}}
-
-  """
-  @spec to_struct(list) :: {:ok, struct} | {:error, String.t()}
-  defdelegate to_struct(obj), to: Telegram, as: :to_struct
-
-  @doc """
-  Converts parsed line to a struct
-
-  ## Example
-
-        iex>P1.to_struct!([:version, "50"])
-        %P1.Telegram.Version{version: "50"}
-
-  """
-  @spec to_struct!(list) :: struct
-  defdelegate to_struct!(obj), to: Telegram, as: :to_struct!
 
 end

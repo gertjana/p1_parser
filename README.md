@@ -12,7 +12,7 @@ Note that this only applies to Dutch smartmeters.
 ```elixir
 def deps do
   [
-    {:p1_parser, "~> 0.1.10"}
+    {:p1_parser, "~> 0.2.0"}
   ]
 end
 ```
@@ -21,17 +21,21 @@ end
 
 Get a usb to p1 cable and plug it in, you should see it appear as a serial device
 
-On an raspberry pi it will show up as `/dev/ttyUSB0`, now the smartmeter will ouput a telegram every 10 seconds
+On an raspberry pi it will show up as `/dev/ttyUSB0`, now the smartmeter will ouput a telegram every x seconds
 
-use a serial libray like `nerves_uart` to connect to it and receive telegrams
+use a serial libray like for instance `nerves_uart` to connect to it and receive telegrams
 
 each line in the telegram can now be parsed like this
 ```elixir
-iex> P1.parse!("1-0:1.8.1(123456.789*kWh)") |> P1.to_struct
+iex> P1.parse!("1-0:1.8.1(123456.789*kWh)")
 ```
 Which will result in
 ```
-%P1.Telegram.TotalEnergy{direction: :consume, tariff: :low, unit: "kWh", value: 123456.789}
+[
+  %P1.Channel{channel: 0, medium: :electricity},
+  %P1.Tags{tags: [:total, :energy, :consume, :low]},
+  [%P1.Value{unit: "kWh", value: 123456.789}]
+]
 ```
 
 ## Documentation 
