@@ -2,7 +2,8 @@ defmodule P1.Parser do
   use Combine
   import Combine.Parsers.Base
   import Combine.Parsers.Text
-
+  alias P1.Channel, as: Channel
+  alias P1.Tags, as: Tags
   @moduledoc """
     Understands the P1 format of Smartmeters and translates them to elixir types
 
@@ -13,7 +14,7 @@ defmodule P1.Parser do
   """
 
   # credo:disable-for-this-file Credo.Check.Refactor.PipeChainStart
-
+  # credo:disable-for-this-file Credo.Check.Refactor.CyclomaticComplexity
   @doc false
   def parse(line) do
     if (String.trim(line) == "") do
@@ -50,12 +51,6 @@ defmodule P1.Parser do
     end
   end
 
-
-#  CRC is a CRC16 value calculated over the preceding characters in the data message (from
-#  “/” to “!” using the polynomial: x16+x15+x2+1). CRC16 uses no XOR in, no XOR out and is
-#  computed with least significant bit first. The value is represented as 4 hexadecimal
-#  characters (MSB first)
-
   @doc false
   def calculate_checksum(bytes) do
     IO.puts("#{String.first(bytes)}...#{String.last(bytes)}")
@@ -70,10 +65,8 @@ defmodule P1.Parser do
     CRC.crc(algo, bytes) |> Hexate.encode
   end
 
-
-
   defp telegram_parser(previous \\ nil) do
-    previous 
+    previous
     |> pipe([word_of(~r/[^!]*/), char("!")], &Enum.join(&1))
     |> hex(4)
   end
@@ -94,7 +87,7 @@ defmodule P1.Parser do
 
   defp medium_channel_parser(previous \\ nil) do
     previous
-    |> pipe([integer(), char("-"), integer()], fn [t, _, c] -> P1.Channel.construct(t, c) end)
+    |> pipe([integer(), char("-"), integer()], fn [t, _, c] -> Channel.construct(t, c) end)
   end
 
   defp measurement_type_parser(previous \\ nil) do
@@ -103,7 +96,7 @@ defmodule P1.Parser do
   end
 
   defp values_parser(previous \\ nil) do
-    previous 
+    previous
     |> many1(parens(value_parser()))
   end
 
@@ -113,30 +106,28 @@ defmodule P1.Parser do
       timestamp_parser(),
       integer_with_unit_parser(),
       float_with_unit_parser(),
-#      integer_parser(),
       word_of(~r/[\w\*\:\-\.]*/)
     ])
   end
 
   defp integer_with_unit_parser(previous \\ nil) do
-    previous |> pipe([integer(), char("*"), word_of(~r/s|m3|V|A|kWh|kW/)], fn [v, _, u] -> %P1.Value{value: v, unit: u} end)
+    previous |> pipe([integer(), char("*"), word_of(~r/s|m3|V|A|kWh|kW/)],
+                  fn [v, _, u] -> %P1.Value{value: v, unit: u} end)
   end
 
   defp float_with_unit_parser(previous \\ nil) do
-    previous |> pipe([float(), char("*"), word_of(~r/s|m3|V|A|kWh|kW/)], fn [v, _, u] -> %P1.Value{value: v, unit: u} end)
-  end
-
-  defp integer_parser(previous \\ nil) do
-    previous |> map(integer() |> followed_by(char(")")), fn i -> %P1.Value{value: i, unit: ""} end)
+    previous |> pipe([float(), char("*"), word_of(~r/s|m3|V|A|kWh|kW/)],
+                  fn [v, _, u] -> %P1.Value{value: v, unit: u} end)
   end
 
   defp unit_parser(previous \\ nil) do
-    previous |> choice([string("s"), string("V"),string("A"),string("m3"),string("kW"),string("kWh")])
+    previous |> choice([string("s"), string("V"), string("A"), string("m3"), string("kW"), string("kWh")])
   end
 
   # /ISk5MT382-1000
   defp header_parser(previous \\ nil) do
-    previous |> pipe([ignore(char("/")), word_of(~r/\w{3}/), ignore(char("5")), word_of(~r/.+/)], fn [m,n] -> %P1.Header{manufacturer: m, model: n} end)
+    previous |> pipe([ignore(char("/")), word_of(~r/\w{3}/), ignore(char("5")), word_of(~r/.+/)],
+                  fn [m, n] -> %P1.Header{manufacturer: m, model: n} end)
   end
 
   # !DEB0
@@ -157,21 +148,17 @@ defmodule P1.Parser do
       "W" -> "+01:00"
     end
     [date | time] = text |> String.slice(0 .. String.length(text) - 1) |> String.codepoints
-    |> Enum.chunk_every(2) |> Enum.map(&Enum.join/1) |> Enum.chunk_every(3)
+                    |> Enum.chunk_every(2) |> Enum.map(&Enum.join/1) |> Enum.chunk_every(3)
+
     "20#{Enum.join(date, "-")}T#{Enum.join(hd(time), ":")}#{tz_offset}"
   end
 
-#  defp hex, do: word_of(~r/[0-9a-f]+/i)
   defp hex(size) when is_integer(size), do: word_of(~r/[0-9a-f]{#{size}}/i)
-#  defp hex(previous), do: previous |> word_of(~r/[0-9a-f]+/i)
   defp hex(previous, size), do: previous |> word_of(~r/[0-9a-f]{#{size}}/i)
 
-#  defp parens(previous, parser), do: previous |> between(ignore(char("(")), parser, ignore(char(")")))
   defp parens(parser), do: between(ignore(char("(")), parser, ignore(char(")")))
 
-#  defp unit(parser), do: pair_both(parser, pair_right(ignore(char("*")), word()))
-#  defp unit(parser, unit), do: pair_both(parser, pair_right(ignore(char("*")), unit))
-
+  # credo:disable-for-file Credo.Check.Refactor.CyclomaticComplexity
   defp to_tags(code) do
     tags = case code do
       [0, 2, 8]   -> [:version]
@@ -211,6 +198,6 @@ defmodule P1.Parser do
       [24, 2, 1]  -> [:mbus, :measurement]
       _ -> [:unknown]
     end
-    %P1.Tags{tags: tags}
+    %Tags{tags: tags}
   end
 end

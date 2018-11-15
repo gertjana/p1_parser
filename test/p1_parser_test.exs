@@ -98,7 +98,7 @@ defmodule P1ParserTest do
     assert results |> Enum.at(34) == {:ok, [%P1.Channel{channel: 1, medium: :abstract},    %P1.Tags{tags: [:mbus, :device_type]}, ["003"]]}
     assert results |> Enum.at(35) == {:ok, [%P1.Channel{channel: 1, medium: :abstract},    %P1.Tags{tags: [:mbus, :equipment_identifier]}, ["3232323241424344313233343536373839"]]}
     assert results |> Enum.at(36) == {:ok, [%P1.Channel{channel: 1, medium: :abstract},    %P1.Tags{tags: [:mbus, :measurement]},
-             ["2010-12-09T11:25:00+01:00", %P1.Value{value: 12785.123, unit: "m3"}]]}
+             ["2010-12-09T11:25:00+01:00", %P1.Value{value: 12_785.123, unit: "m3"}]]}
     assert results |> Enum.at(37) == {:ok, [%P1.Checksum{value: "EF2F"}]}
   end
 end
