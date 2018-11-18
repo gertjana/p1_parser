@@ -158,46 +158,39 @@ defmodule P1.Parser do
 
   defp parens(parser), do: between(ignore(char("(")), parser, ignore(char(")")))
 
-  # credo:disable-for-file Credo.Check.Refactor.CyclomaticComplexity
-  defp to_tags(code) do
-    tags = case code do
-      [0, 2, 8]   -> [:version]
-      [1, 0, 0]   -> [:timestamp]
-      [1, 8, 1]   -> [:total, :energy, :consume, :low]
-      [1, 8, 2]   -> [:total, :energy, :consume, :normal]
-      [2, 8, 1]   -> [:total, :energy, :produce, :low]
-      [2, 8, 2]   -> [:total, :energy, :produce, :normal]
-      [1, 7, 0]   -> [:active, :power, :consume]
-      [2, 7, 0]   -> [:active, :power, :produce]
-      [96, 1, 1]  -> [:equipment_identifier]
-      [96, 7, 9]  -> [:power_failures, :long]
-      [96, 7, 21] -> [:power_failures, :short]
-      [96, 14, 0] -> [:tariff_indicator]
-      [99, 97, 0] -> [:power_failures, :event_log]
-      [32, 32, 0] -> [:voltage_sags, :l1]
-      [52, 32, 0] -> [:voltage_sags, :l2]
-      [72, 32, 0] -> [:voltage_sags, :l3]
-      [32, 36, 0] -> [:voltage_swells, :l1]
-      [52, 36, 0] -> [:voltage_swells, :l2]
-      [72, 36, 0] -> [:voltage_swells, :l3]
-      [31, 7, 0]  -> [:active, :amperage, :l1]
-      [51, 7, 0]  -> [:active, :amperage, :l2]
-      [71, 7, 0]  -> [:active, :amperage, :l3]
-      [32, 7, 0]  -> [:active, :voltage, :l1]
-      [52, 7, 0]  -> [:active, :voltage, :l2]
-      [72, 7, 0]  -> [:active, :voltage, :l3]
-      [96, 13, 0] -> [:message]
-      [21, 7, 0]  -> [:active, :power, :l1, :plus_p]
-      [41, 7, 0]  -> [:active, :power, :l2, :plus_p]
-      [61, 7, 0]  -> [:active, :power, :l3, :plus_p]
-      [22, 7, 0]  -> [:active, :power, :l1, :min_p]
-      [42, 7, 0]  -> [:active, :power, :l2, :min_p]
-      [62, 7, 0]  -> [:active, :power, :l3, :min_p]
-      [24, 1, 0]  -> [:mbus, :device_type]
-      [96, 1, 0]  -> [:mbus, :equipment_identifier]
-      [24, 2, 1]  -> [:mbus, :measurement]
-      _ -> [:unknown]
-    end
-    %Tags{tags: tags}
-  end
+  defp to_tags([0, 2, 8]),   do: %Tags{tags: [general: :version]}
+  defp to_tags([1, 0, 0]),   do: %Tags{tags: [general: :timestamp]}
+  defp to_tags([96, 1, 1]),  do: %Tags{tags: [general: :equipment_identifier]}
+  defp to_tags([96, 14, 0]), do: %Tags{tags: [general: :tariff_indicator]}
+  defp to_tags([1, 8, 1]),   do: %Tags{tags: [energy: :total, direction: :consume, tariff: :low]}
+  defp to_tags([1, 8, 2]),   do: %Tags{tags: [energy: :total, direction: :consume, tariff: :normal]}
+  defp to_tags([2, 8, 1]),   do: %Tags{tags: [energy: :total, direction: :produce, tariff: :low]}
+  defp to_tags([2, 8, 2]),   do: %Tags{tags: [energy: :total, direction: :produce, tariff: :normal]}
+  defp to_tags([1, 7, 0]),   do: %Tags{tags: [power: :active, direction: :consume, phase: :all]}
+  defp to_tags([2, 7, 0]),   do: %Tags{tags: [power: :active, direction: :produce, phase: :all]}
+  defp to_tags([21, 7, 0]),  do: %Tags{tags: [power: :active, phase: :l1, direction: :consume]}
+  defp to_tags([41, 7, 0]),  do: %Tags{tags: [power: :active, phase: :l2, direction: :consume]}
+  defp to_tags([61, 7, 0]),  do: %Tags{tags: [power: :active, phase: :l3, direction: :consume]}
+  defp to_tags([22, 7, 0]),  do: %Tags{tags: [power: :active, phase: :l1, direction: :produce]}
+  defp to_tags([42, 7, 0]),  do: %Tags{tags: [power: :active, phase: :l2, direction: :produce]}
+  defp to_tags([62, 7, 0]),  do: %Tags{tags: [power: :active, phase: :l3, direction: :produce]}
+  defp to_tags([31, 7, 0]),  do: %Tags{tags: [amperage: :active, phase: :l1]}
+  defp to_tags([51, 7, 0]),  do: %Tags{tags: [amperage: :active, phase: :l2]}
+  defp to_tags([71, 7, 0]),  do: %Tags{tags: [amperage: :active, phase: :l3]}
+  defp to_tags([32, 7, 0]),  do: %Tags{tags: [voltage: :active, phase: :l1]}
+  defp to_tags([52, 7, 0]),  do: %Tags{tags: [voltage: :active, phase: :l2]}
+  defp to_tags([72, 7, 0]),  do: %Tags{tags: [voltage: :active, phase: :l3]}
+  defp to_tags([96, 7, 9]),  do: %Tags{tags: [power_failures: :long]}
+  defp to_tags([96, 7, 21]), do: %Tags{tags: [power_failures: :short]}
+  defp to_tags([99, 97, 0]), do: %Tags{tags: [power_failures: :event_log]}
+  defp to_tags([32, 32, 0]), do: %Tags{tags: [:voltage_sags, phase: :l1]}
+  defp to_tags([52, 32, 0]), do: %Tags{tags: [:voltage_sags, phase: :l2]}
+  defp to_tags([72, 32, 0]), do: %Tags{tags: [:voltage_sags, phase: :l3]}
+  defp to_tags([32, 36, 0]), do: %Tags{tags: [:voltage_swells, phase: :l1]}
+  defp to_tags([52, 36, 0]), do: %Tags{tags: [:voltage_swells, phase: :l2]}
+  defp to_tags([72, 36, 0]), do: %Tags{tags: [:voltage_swells, phase: :l3]}
+  defp to_tags([96, 13, 0]), do: %Tags{tags: [message: :text]}
+  defp to_tags([24, 1, 0]),  do: %Tags{tags: [mbus: :device_type]}
+  defp to_tags([96, 1, 0]),  do: %Tags{tags: [mbus: :equipment_identifier]}
+  defp to_tags([24, 2, 1]),  do: %Tags{tags: [mbus: :measurement]}
 end
