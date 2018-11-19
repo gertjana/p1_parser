@@ -66,16 +66,11 @@ defmodule P1 do
     """
     defstruct medium: nil, channel: 0
 
-    def construct(medium, channel) do
-      m = case medium do
-            0 -> :abstract
-            1 -> :electricity
-            6 -> :heat
-            7 -> :gas
-            8 -> :water
-          end
-      %Channel{medium: m, channel: channel}
-    end
+    def construct(0, channel), do: %Channel{medium: :abstract, channel: channel}
+    def construct(1, channel), do: %Channel{medium: :electricity, channel: channel}
+    def construct(6, channel), do: %Channel{medium: :heat, channel: channel}
+    def construct(7, channel), do: %Channel{medium: :gas, channel: channel}
+    def construct(8, channel), do: %Channel{medium: :water, channel: channel}
   end
 
   defmodule Value do
@@ -101,35 +96,36 @@ defmodule P1 do
     defstruct tags: []
   end
 
-    defmodule ObisCode do
-      @moduledoc """
+  defmodule ObisCode do
+    @moduledoc """
 
-      Struct that represents a data (OBIS) line in the telegram
+    Struct that represents a data (OBIS) line in the telegram
 
-      OBiS Codes have the following structure `A-B:C.D.E and one our more values in parentheses (v1) where
+    OBiS Codes have the following structure `A-B:C.D.E` and one our more values in parentheses (v1) where
 
-      Code|Description
-      ---|---
-      A | specifies the medium 0=abstract, 1=electricity, 6=heat, 7=gas, 8=water
-      B | specifies the channel, 0 is the meter itself, higher numbers are modbus connected devices
-      C | specifies the physical value (current, voltage, energy, level, temperature, ...)
-      D |	specifies the quantity computation result of specific algorythm
-      E | specifies the measurement type defined by groups A to D into individual measurements (e.g. switching ranges)​
+    |Code|Description|
+    |---|---|
+    |A | specifies the medium 0=abstract, 1=electricity, 6=heat, 7=gas, 8=water|
+    |B | specifies the channel, 0 is the meter itself, higher numbers are modbus connected devices|
+    |C | specifies the physical value (current, voltage, energy, level, temperature, ...)|
+    |D |	specifies the quantity computation result of specific algorythm|
+    |E | specifies the measurement type defined by groups A to D into individual measurements (e.g. switching ranges)​|
 
-      The values consists of parentheses around for instance timestamps, integers, hexadecimal encoded texts and measurements with units (where a * separates value and unit)
-      ```
-      iex> P1.parse!("1-0:2.7.0(01.869*kW)") |> P1.ObisCode.construct
-      %P1.ObisCode{
-      channel: %P1.Channel{channel: 0, medium: :electricity},
-      tags: %P1.Tags{tags: [:active, :power, :produce]},
-      values: [%P1.Value{unit: "kW", value: 1.869}]
-      }
-      ```
-      """
-      defstruct channel: %Channel{}, tags: %Tags{}, values: []
+    The values consists of parentheses around for instance timestamps, integers, hexadecimal encoded texts and measurements with units (where a * separates value and unit)
 
-      def construct([channel, tags, values]), do: %ObisCode{channel: channel, tags: tags, values: values}
-    end
+    ```
+    iex> P1.parse!("1-0:2.7.0(01.869*kW)") |> P1.ObisCode.construct
+    %P1.ObisCode{
+    channel: %P1.Channel{channel: 0, medium: :electricity},
+    tags: %P1.Tags{tags: [:active, :power, :produce]},
+    values: [%P1.Value{unit: "kW", value: 1.869}]
+    }
+    ```
+    """
+    defstruct channel: %Channel{}, tags: %Tags{}, values: []
+
+    def construct([channel, tags, values]), do: %ObisCode{channel: channel, tags: tags, values: values}
+  end
 
   defmodule Header do
     @moduledoc """
