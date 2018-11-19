@@ -65,13 +65,15 @@ defmodule P1.Parser do
     CRC.crc(algo, bytes) |> Hexate.encode
   end
 
-  defp telegram_parser(previous \\ nil) do
+  # Parsers
+
+  defp telegram_parser(previous) do
     previous
     |> pipe([word_of(~r/[^!]*/), char("!")], &Enum.join(&1))
     |> hex(4)
   end
 
-  defp line_parser(previous \\ nil) do
+  defp line_parser(previous) do
     previous
     |> choice([header_parser(), obis_parser(), checksum_parser()])
   end
@@ -85,17 +87,17 @@ defmodule P1.Parser do
     |> ignore(option(newline()))
   end
 
-  defp medium_channel_parser(previous \\ nil) do
+  defp medium_channel_parser(previous) do
     previous
     |> pipe([integer(), char("-"), integer()], fn [t, _, c] -> Channel.construct(t, c) end)
   end
 
-  defp measurement_type_parser(previous \\ nil) do
+  defp measurement_type_parser(previous) do
     previous
     |> pipe([integer(), ignore(char(".")), integer(), ignore(char(".")), integer()], &to_tags(&1))
   end
 
-  defp values_parser(previous \\ nil) do
+  defp values_parser(previous) do
     previous
     |> many1(parens(value_parser()))
   end
@@ -120,17 +122,11 @@ defmodule P1.Parser do
                   fn [v, _, u] -> %P1.Value{value: v, unit: u} end)
   end
 
-  defp unit_parser(previous \\ nil) do
-    previous |> choice([string("s"), string("V"), string("A"), string("m3"), string("kW"), string("kWh")])
-  end
-
-  # /ISk5MT382-1000
   defp header_parser(previous \\ nil) do
     previous |> pipe([ignore(char("/")), word_of(~r/\w{3}/), ignore(char("5")), word_of(~r/.+/)],
                   fn [m, n] -> %P1.Header{manufacturer: m, model: n} end)
   end
 
-  # !DEB0
   defp checksum_parser(previous \\ nil) do
     previous |> pipe([char("!"), hex(4)], fn [_, c] -> %P1.Checksum{value: c} end)
   end
