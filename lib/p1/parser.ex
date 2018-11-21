@@ -113,13 +113,15 @@ defmodule P1.Parser do
   end
 
   defp integer_with_unit_parser(previous \\ nil) do
-    previous |> pipe([integer(), char("*"), word_of(~r/s|m3|V|A|kWh|kW/)],
-                  fn [v, _, u] -> %P1.Value{value: v, unit: u} end)
+    previous |> pipe([integer(), ignore(char("*")), unit_parser()], &to_value(&1))
   end
 
   defp float_with_unit_parser(previous \\ nil) do
-    previous |> pipe([float(), char("*"), word_of(~r/s|m3|V|A|kWh|kW/)],
-                  fn [v, _, u] -> %P1.Value{value: v, unit: u} end)
+    previous |> pipe([float(), ignore(char("*")), unit_parser()], &to_value(&1))
+  end
+
+  defp unit_parser(previous \\ nil) do
+    previous |> word_of(~r/s|m3|V|A|kWh|kW/)
   end
 
   defp header_parser(previous \\ nil) do
@@ -153,6 +155,8 @@ defmodule P1.Parser do
   defp hex(previous, size), do: previous |> word_of(~r/[0-9a-f]{#{size}}/i)
 
   defp parens(parser), do: between(ignore(char("(")), parser, ignore(char(")")))
+
+  defp to_value([value, unit]), do: %P1.Value{value: value, unit: unit}
 
   defp to_tags([0, 2, 8]),   do: %Tags{tags: [general: :version]}
   defp to_tags([1, 0, 0]),   do: %Tags{tags: [general: :timestamp]}
