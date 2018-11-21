@@ -105,22 +105,22 @@ defmodule P1ParserTest do
                                         "2010-12-08T15:24:15+01:00", %P1.Value{value: 240, unit: "s"},
                                         "2010-12-08T15:10:04+01:00", %P1.Value{value: 301, unit: "s"}]]}
     assert results |> Enum.at(14) == {:ok, [%P1.Channel{channel: 0, medium: :electricity},
-                                        %P1.Tags{tags: [:voltage_sags, {:phase, :l1}]},
+                                        %P1.Tags{tags: [{:voltage, :sags}, {:phase, :l1}]},
                                        ["00002"]]}
     assert results |> Enum.at(15) == {:ok, [%P1.Channel{channel: 0, medium: :electricity},
-                                        %P1.Tags{tags: [:voltage_sags, {:phase, :l2}]},
+                                        %P1.Tags{tags: [{:voltage, :sags}, {:phase, :l2}]},
                                        ["00001"]]}
     assert results |> Enum.at(16) == {:ok, [%P1.Channel{channel: 0, medium: :electricity},
-                                        %P1.Tags{tags: [:voltage_sags, {:phase, :l3}]},
+                                        %P1.Tags{tags: [{:voltage, :sags}, {:phase, :l3}]},
                                        ["00000"]]}
     assert results |> Enum.at(17) == {:ok, [%P1.Channel{channel: 0, medium: :electricity},
-                                        %P1.Tags{tags: [:voltage_swells, {:phase, :l1}]},
+                                        %P1.Tags{tags: [{:voltage, :swells}, {:phase, :l1}]},
                                        ["00000"]]}
     assert results |> Enum.at(18) == {:ok, [%P1.Channel{channel: 0, medium: :electricity},
-                                        %P1.Tags{tags: [:voltage_swells, {:phase, :l2}]},
+                                        %P1.Tags{tags: [{:voltage, :swells}, {:phase, :l2}]},
                                        ["00003"]]}
     assert results |> Enum.at(19) == {:ok, [%P1.Channel{channel: 0, medium: :electricity},
-                                        %P1.Tags{tags: [:voltage_swells, {:phase, :l3}]},
+                                        %P1.Tags{tags: [{:voltage, :swells}, {:phase, :l3}]},
                                        ["00000"]]}
     assert results |> Enum.at(22) == {:ok, [%P1.Channel{channel: 0, medium: :electricity},
                                         %P1.Tags{tags: [{:voltage, :active}, {:phase, :l1}]},

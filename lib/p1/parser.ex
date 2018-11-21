@@ -183,12 +183,12 @@ defmodule P1.Parser do
   defp to_tags([96, 7, 9]),  do: %Tags{tags: [power_failures: :long]}
   defp to_tags([96, 7, 21]), do: %Tags{tags: [power_failures: :short]}
   defp to_tags([99, 97, 0]), do: %Tags{tags: [power_failures: :event_log]}
-  defp to_tags([32, 32, 0]), do: %Tags{tags: [:voltage_sags, phase: :l1]}
-  defp to_tags([52, 32, 0]), do: %Tags{tags: [:voltage_sags, phase: :l2]}
-  defp to_tags([72, 32, 0]), do: %Tags{tags: [:voltage_sags, phase: :l3]}
-  defp to_tags([32, 36, 0]), do: %Tags{tags: [:voltage_swells, phase: :l1]}
-  defp to_tags([52, 36, 0]), do: %Tags{tags: [:voltage_swells, phase: :l2]}
-  defp to_tags([72, 36, 0]), do: %Tags{tags: [:voltage_swells, phase: :l3]}
+  defp to_tags([32, 32, 0]), do: %Tags{tags: [voltage: :sags, phase: :l1]}
+  defp to_tags([52, 32, 0]), do: %Tags{tags: [voltage: :sags, phase: :l2]}
+  defp to_tags([72, 32, 0]), do: %Tags{tags: [voltage: :sags, phase: :l3]}
+  defp to_tags([32, 36, 0]), do: %Tags{tags: [voltage: :swells, phase: :l1]}
+  defp to_tags([52, 36, 0]), do: %Tags{tags: [voltage: :swells, phase: :l2]}
+  defp to_tags([72, 36, 0]), do: %Tags{tags: [voltage: :swells, phase: :l3]}
   defp to_tags([96, 13, 0]), do: %Tags{tags: [message: :text]}
   defp to_tags([24, 1, 0]),  do: %Tags{tags: [mbus: :device_type]}
   defp to_tags([96, 1, 0]),  do: %Tags{tags: [mbus: :equipment_identifier]}
