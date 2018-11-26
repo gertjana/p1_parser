@@ -154,7 +154,7 @@ defmodule P1.Parser do
   defp hex(size) when is_integer(size), do: word_of(~r/[0-9a-f]{#{size}}/i)
   defp hex(previous, size), do: previous |> word_of(~r/[0-9a-f]{#{size}}/i)
 
-  defp parens(parser), do: between(ignore(char("(")), parser, ignore(char(")")))
+  defp parens(parser), do: between(char("("), parser, char(")"))
 
   defp to_value([value, unit]), do: %P1.Value{value: value, unit: unit}
 
