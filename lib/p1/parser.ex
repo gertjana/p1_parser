@@ -112,17 +112,22 @@ defmodule P1.Parser do
     ])
   end
 
-  defp integer_with_unit_parser(previous \\ nil) do
-    previous |> pipe([integer(), ignore(char("*")), unit_parser()], &to_value(&1))
-  end
-
   defp float_with_unit_parser(previous \\ nil) do
     previous |> pipe([float(), ignore(char("*")), unit_parser()], &to_value(&1))
+  end
+
+  defp integer_with_unit_parser(previous \\ nil) do
+    previous |> pipe([integer(), ignore(char("*")), unit_parser()], &to_value(&1))
   end
 
   defp unit_parser(previous \\ nil) do
     previous |> word_of(~r/s|m3|V|A|kWh|kW/)
   end
+
+  defp hexadecimal_parser(previous \\ nil) do
+      previous |> map(word_of(~r/[0-9a-f]/i), fn txt -> Hexate.decode(txt) end)
+  end
+
 
   defp header_parser(previous \\ nil) do
     previous |> pipe([ignore(char("/")), word_of(~r/\w{3}/), ignore(char("5")), word_of(~r/.+/)],

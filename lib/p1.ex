@@ -29,8 +29,7 @@ defmodule P1 do
     1-0:32.36.0(00000)
     1-0:52.36.0(00003)
     1-0:72.36.0(00000)
-    0-
-    0:96.13.0(303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C
+    0-0:96.13.0(303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C
     3D3E3F303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F)
     1-0:32.7.0(220.1*V)
     1-0:52.7.0(220.2*V)
@@ -71,6 +70,7 @@ defmodule P1 do
     def construct(6, channel), do: %Channel{medium: :heat, channel: channel}
     def construct(7, channel), do: %Channel{medium: :gas, channel: channel}
     def construct(8, channel), do: %Channel{medium: :water, channel: channel}
+    def construct(_, channel), do: %Channel{medium: :unknown, channel: channel}
   end
 
   defmodule Value do
@@ -80,9 +80,9 @@ defmodule P1 do
       ```
       iex> P1.parse!("1-0:32.7.0(220.1*V)")
         [
-        %P1.Channel{channel: 0, medium: :electricity},
-        %P1.Tags{tags: [{voltage:, :active}, {:phase, l1}]},
-        [%P1.Value{unit: "V", value: 220.1}]
+          %P1.Channel{channel: 0, medium: :electricity},
+          %P1.Tags{tags: [{voltage:, :active}, {:phase, l1}]},
+          [%P1.Value{unit: "V", value: 220.1}]
         ]
       ```
     """
@@ -91,7 +91,17 @@ defmodule P1 do
 
   defmodule Tags do
     @moduledoc """
-      Contains a list of tags, describing the measurement
+      Contains a list of tags, describing the measurement, based on the C.D.E part of the OBIS reference
+
+      ```
+      iex> P1.parse("0-0:1.0.0(181126113020W)")
+      {:ok,
+        [
+          %P1.Channel{channel: 0, medium: :abstract},
+          %P1.Tags{tags: [general: :timestamp]},
+          ["2018-11-26T11:30:20+01:00"]
+        ]}
+      ```
     """
     defstruct tags: []
   end
@@ -174,7 +184,12 @@ defmodule P1 do
   ## Example
 
       iex> P1.parse("1-0:1.7.0(01.193*kW)")
-      {:ok, [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [{:power, :active}, {:direction, :consume}, phase: :all]}, [%P1.Value{value: 1.193, unit: "kW"}]]}
+      {:ok, 
+        [
+          %P1.Channel{channel: 0, medium: :electricity}, 
+          %P1.Tags{tags: [{:power, :active}, {:direction, :consume}, phase: :all]}, 
+          [%P1.Value{value: 1.193, unit: "kW"}]
+        ]}
 
   """
   @spec parse(String.t()) :: {:ok, list} | {:error, String.t()}
@@ -186,7 +201,11 @@ defmodule P1 do
   ## Example
 
       iex> P1.parse!("1-0:1.8.1(123456.789*kWh)")
-      [%P1.Channel{channel: 0, medium: :electricity}, %P1.Tags{tags: [{:energy, :total},{:direction, :consume}, {:tariff, :low}]}, [%P1.Value{value: 123_456.789, unit: "kWh"}]]
+      [
+        %P1.Channel{channel: 0, medium: :electricity}, 
+        %P1.Tags{tags: [{:energy, :total},{:direction, :consume}, {:tariff, :low}]}, 
+        [%P1.Value{value: 123_456.789, unit: "kWh"}]
+      ]
 
   """
   @spec parse!(String.t()) :: list
