@@ -128,7 +128,6 @@ defmodule P1.Parser do
       previous |> map(word_of(~r/[0-9a-f]/i), fn txt -> Hexate.decode(txt) end)
   end
 
-
   defp header_parser(previous \\ nil) do
     previous |> pipe([ignore(char("/")), word_of(~r/\w{3}/), ignore(char("5")), word_of(~r/.+/)],
                   fn [m, n] -> %P1.Header{manufacturer: m, model: n} end)
