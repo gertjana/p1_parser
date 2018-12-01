@@ -88,10 +88,10 @@ defmodule P1ParserTest do
                                         %P1.Tags{tags: [{:general, :tariff_indicator}]},
                                        ["0002"]]}
     assert results |> Enum.at(9)  == {:ok, [%P1.Channel{channel: 0, medium: :electricity},
-                                        %P1.Tags{tags: [{:power, :active}, {:direction, :consume}, {:phase, :all}]},
+                                        %P1.Tags{tags: [{:power, :active}, {:phase, :all}, {:direction, :consume}]},
                                        [%P1.Value{value: 1.193, unit: "kW"}]]}
     assert results |> Enum.at(10) == {:ok, [%P1.Channel{channel: 0, medium: :electricity},
-                                        %P1.Tags{tags: [{:power, :active}, {:direction, :produce}, {:phase, :all}]},
+                                        %P1.Tags{tags: [{:power, :active}, {:phase, :all}, {:direction, :produce}]},
                                        [%P1.Value{value: 0.0, unit: "kW"}]]}
     assert results |> Enum.at(11) == {:ok, [%P1.Channel{channel: 0, medium: :abstract},
                                         %P1.Tags{tags: [{:power_failures, :short}]},

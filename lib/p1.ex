@@ -126,11 +126,10 @@ defmodule P1 do
     ```
     iex> P1.parse!("1-0:2.7.0(01.869*kW)") |> P1.ObisCode.construct
     %P1.ObisCode{
-    channel: %P1.Channel{channel: 0, medium: :electricity},
-    tags: %P1.Tags{tags: [:active, :power, :produce]},
-    values: [%P1.Value{unit: "kW", value: 1.869}]
-    }
-    ```
+      channel: %P1.Channel{channel: 0, medium: :electricity},
+      tags: %P1.Tags{tags: [power: :active, phase: :all, direction: :produce]},
+      values: [%P1.Value{unit: "kW", value: 1.869}]
+    }    ```
     """
     defstruct channel: %Channel{}, tags: %Tags{}, values: []
 
@@ -187,7 +186,7 @@ defmodule P1 do
       {:ok, 
         [
           %P1.Channel{channel: 0, medium: :electricity}, 
-          %P1.Tags{tags: [{:power, :active}, {:direction, :consume}, phase: :all]}, 
+          %P1.Tags{tags: [{:power, :active}, {:phase, :all}, {:direction, :consume}]}, 
           [%P1.Value{value: 1.193, unit: "kW"}]
         ]}
 
