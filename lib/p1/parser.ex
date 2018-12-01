@@ -170,8 +170,8 @@ defmodule P1.Parser do
   defp to_tags([1, 8, 2]),   do: %Tags{tags: [energy: :total, direction: :consume, tariff: :normal]}
   defp to_tags([2, 8, 1]),   do: %Tags{tags: [energy: :total, direction: :produce, tariff: :low]}
   defp to_tags([2, 8, 2]),   do: %Tags{tags: [energy: :total, direction: :produce, tariff: :normal]}
-  defp to_tags([1, 7, 0]),   do: %Tags{tags: [power: :active, direction: :consume, phase: :all]}
-  defp to_tags([2, 7, 0]),   do: %Tags{tags: [power: :active, direction: :produce, phase: :all]}
+  defp to_tags([1, 7, 0]),   do: %Tags{tags: [power: :active, phase: :all, direction: :consume]}
+  defp to_tags([2, 7, 0]),   do: %Tags{tags: [power: :active, phase: :all, direction: :produce]}
   defp to_tags([21, 7, 0]),  do: %Tags{tags: [power: :active, phase: :l1, direction: :consume]}
   defp to_tags([41, 7, 0]),  do: %Tags{tags: [power: :active, phase: :l2, direction: :consume]}
   defp to_tags([61, 7, 0]),  do: %Tags{tags: [power: :active, phase: :l3, direction: :consume]}
@@ -194,6 +194,7 @@ defmodule P1.Parser do
   defp to_tags([52, 36, 0]), do: %Tags{tags: [voltage: :swells, phase: :l2]}
   defp to_tags([72, 36, 0]), do: %Tags{tags: [voltage: :swells, phase: :l3]}
   defp to_tags([96, 13, 0]), do: %Tags{tags: [message: :text]}
+  defp to_tags([96, 13, 1]), do: %Tags{tags: [message: :code]}
   defp to_tags([24, 1, 0]),  do: %Tags{tags: [mbus: :device_type]}
   defp to_tags([96, 1, 0]),  do: %Tags{tags: [mbus: :equipment_identifier]}
   defp to_tags([24, 2, 1]),  do: %Tags{tags: [mbus: :measurement]}
