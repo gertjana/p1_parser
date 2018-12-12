@@ -148,27 +148,6 @@ defmodule P1 do
     defstruct manufacturer: "", model: ""
   end
 
-  defmodule Checksum do
-    @moduledoc """
-    contains the CRC16 Checksum
-
-    It is a CRC16 value calculated over the preceding characters in the data message (from
-    “/” to “!” using the polynomial: x16+x15+x2+1). CRC16 uses no XOR in, no XOR out and is
-    computed with least significant bit first. The value is represented as 4 hexadecimal
-    characters (MSB first)
-
-    ```
-    iex> P1.parse("!B0B0")
-    {:ok, [%P1.Checksum{value: "B0B0"}]}
-    ```
-    """
-    defstruct value: 0x00
-  end
-
-  @doc false
-  @spec checksum(String.t()) :: String.t()
-  defdelegate checksum(bytes), to: Parser, as: :calculate_checksum
-
   @doc false
   @spec parse_telegram(String.t()) :: {:ok, list} | {:error, String.t()}
   defdelegate parse_telegram(telegram), to: Parser, as: :parse_telegram

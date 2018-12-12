@@ -3,20 +3,6 @@ defmodule P1ParserTest do
 
   doctest P1
 
-#  test "Send whole telegram" do
-#    Path.expand("./test/examples")
-#    |> File.ls!()
-#    |> Enum.each(fn f ->
-#      to_read = Path.expand("./test/examples/#{f}")
-#        case File.read( to_read) do
-#          {:ok, txt} ->
-#          {:ok, [res, checksum]} = P1.parse_telegram(txt<>"!")
-#            IO.puts("#{checksum} <-> #{P1.checksum(res)}")
-#          x -> flunk(inspect(x))
-#        end
-#    end)
-#  end
-
   test "send lines" do
     lines = """
       /ISk5\\2MT382-1000
@@ -56,7 +42,6 @@ defmodule P1ParserTest do
       0-1:24.1.0(003)
       0-1:96.1.0(3232323241424344313233343536373839)
       0-1:24.2.1(101209112500W)(12785.123*m3)
-      !EF2F
       """ |> String.split("\n")
 
     results = lines |> Enum.map(fn line -> P1.parse(line) end)
@@ -167,6 +152,5 @@ defmodule P1ParserTest do
     assert results |> Enum.at(36) == {:ok, [%P1.Channel{channel: 1, medium: :abstract},
                                         %P1.Tags{tags: [{:mbus, :measurement}]},
                                        ["2010-12-09T11:25:00+01:00", %P1.Value{value: 12_785.123, unit: "m3"}]]}
-    assert results |> Enum.at(37) == {:ok, [%P1.Checksum{value: "EF2F"}]}
   end
 end

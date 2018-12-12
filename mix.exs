@@ -22,20 +22,19 @@ defmodule P1Parser.Mixfile do
   defp deps do
     [
       {:combine, "~> 0.10.0"},
-      {:crc, "~> 0.9.1"},
-      {:hexate,  ">= 0.6.0"},
       {:credo, "~> 0.10.0", only: [:dev, :test], runtime: false},
-      {:ex_doc, ">= 0.0.0", only: :dev} 
+      {:ex_doc, ">= 0.0.0", only: :dev},
+      {:dialyxir, "~> 0.4", only: :dev}
     ]
   end
 
   defp package do
-  [
-    files: ["lib", "mix.exs", "README.md", "LICENSE*"],
-    maintainers: ["Gertjan Assies"],
-    licenses: ["Apache 2.0"],
-    links: %{"GitHub" => "https://github.com/gertjana/p1_parser"}
-  ]
-end
+    [
+      files: ["lib", "mix.exs", "README.md", "LICENSE*"],
+      maintainers: ["Gertjan Assies"],
+      licenses: ["Apache 2.0"],
+      links: %{"GitHub" => "https://github.com/gertjana/p1_parser"}
+    ]
+  end
 
 end

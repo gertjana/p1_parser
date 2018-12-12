@@ -51,20 +51,6 @@ defmodule P1.Parser do
     end
   end
 
-  @doc false
-  def calculate_checksum(bytes) do
-    IO.puts("#{String.first(bytes)}...#{String.last(bytes)}")
-    algo = %{
-      width: 16,
-      poly: 0xA001,
-      init: 0x00,
-      refin: false,
-      refout: false,
-      xorout: 0x00
-    }
-    CRC.crc(algo, bytes) |> Hexate.encode
-  end
-
   # Parsers
 
   defp telegram_parser(previous) do
@@ -75,7 +61,7 @@ defmodule P1.Parser do
 
   defp line_parser(previous) do
     previous
-    |> choice([header_parser(), obis_parser(), checksum_parser()])
+    |> choice([header_parser(), obis_parser()])
   end
 
   defp obis_parser(previous \\ nil) do
@@ -124,17 +110,13 @@ defmodule P1.Parser do
     previous |> word_of(~r/s|m3|V|A|kWh|kW/)
   end
 
-  defp hexadecimal_parser(previous \\ nil) do
-      previous |> map(word_of(~r/[0-9a-f]/i), fn txt -> Hexate.decode(txt) end)
-  end
+  # defp hexadecimal_parser(previous \\ nil) do
+  #     previous |> map(word_of(~r/[0-9a-f]/i), fn txt -> Hexate.decode(txt) end)
+  # end
 
   defp header_parser(previous \\ nil) do
     previous |> pipe([ignore(char("/")), word_of(~r/\w{3}/), ignore(char("5")), word_of(~r/.+/)],
                   fn [m, n] -> %P1.Header{manufacturer: m, model: n} end)
-  end
-
-  defp checksum_parser(previous \\ nil) do
-    previous |> pipe([char("!"), hex(4)], fn [_, c] -> %P1.Checksum{value: c} end)
   end
 
   # Helper functions
